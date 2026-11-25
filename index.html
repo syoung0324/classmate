@@ -303,7 +303,18 @@
           <div>
             <label class="block text-xs font-semibold text-gray-700 mb-1">LINE ID / 群組暱稱</label>
             <div class="relative">
-              <i data-lucide="message-circle" class="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+              <svg viewBox="0 0 100 100" class="line-brand-icon w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2" aria-hidden="true">
+                <defs>
+                  <linearGradient id="lineGreenGradModal" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#69F08D" />
+                    <stop offset="50%" stop-color="#28D36E" />
+                    <stop offset="100%" stop-color="#06C755" />
+                  </linearGradient>
+                </defs>
+                <rect x="4" y="4" width="92" height="92" rx="22" fill="url(#lineGreenGradModal)" />
+                <path d="M 85 46 C 85 30.5 69.3 18 50 18 C 30.7 18 15 30.5 15 46 C 15 59.8 27.3 71.4 43.9 73.6 C 45 73.8 46.5 74.3 46.9 75.3 C 47.2 76.1 47.1 77.4 47 78.2 L 46.5 81.2 C 46.3 82.2 45.7 84.9 49.8 83.2 C 53.9 81.5 71.8 70.2 79.8 60.9 C 83.4 56.8 85 51.7 85 46 Z" fill="#FFFFFF" stroke="#111111" stroke-width="5.5" stroke-linejoin="round" />
+                <path d="M 27 38 V 55 H 36 M 42 38 V 55 M 49 55 V 38 L 60 55 V 38 M 73 38 H 66 V 55 H 73 M 66 46.5 H 72" fill="none" stroke="#111111" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
               <input type="text" id="field-line" placeholder="輸入 LINE ID 方便加好友" class="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-cream-50 border border-cream-300 focus:border-forest-700 focus:ring-2 focus:ring-forest-700/20 outline-none text-sm" />
             </div>
           </div>

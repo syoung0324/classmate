@@ -80,6 +80,14 @@ body {
   --tw-gradient-to: var(--forest-700) var(--tw-gradient-to-position);
 }
 
+/* LINE 品牌圖示微調 */
+.line-brand-icon {
+  display: inline-block;
+  flex-shrink: 0;
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
 /* 頁首網點背景紋理 */
 .header-pattern {
   background-image: radial-gradient(#FDE68A 1px, transparent 1px);

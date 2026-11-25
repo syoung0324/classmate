@@ -6,8 +6,7 @@ import {
   setDoc,
   updateDoc,
   deleteDoc,
-  onSnapshot,
-  writeBatch
+  onSnapshot
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
 // ==========================================
@@ -48,7 +47,26 @@ const STATUS_STYLES = {
   '失聯中':   { badge: 'bg-rose-50 text-rose-700 border-rose-200', dot: 'bg-rose-500', order: 5 }
 };
 
-// 應用程式狀態（完全由 Firestore 動態載入，不在前端程式碼硬編碼個人資料）
+// LINE 品牌圖示向量 SVG（對應綠底白框黑字圓角方形 Logo）
+function getLineBrandIconSVG(uniqueKey = 'card') {
+  const gradId = `lineGreenGrad_${uniqueKey}`;
+  return `
+    <svg viewBox="0 0 100 100" class="line-brand-icon w-4 h-4 shrink-0" aria-hidden="true">
+      <defs>
+        <linearGradient id="${gradId}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#69F08D" />
+          <stop offset="50%" stop-color="#28D36E" />
+          <stop offset="100%" stop-color="#06C755" />
+        </linearGradient>
+      </defs>
+      <rect x="4" y="4" width="92" height="92" rx="22" fill="url(#${gradId})" />
+      <path d="M 85 46 C 85 30.5 69.3 18 50 18 C 30.7 18 15 30.5 15 46 C 15 59.8 27.3 71.4 43.9 73.6 C 45 73.8 46.5 74.3 46.9 75.3 C 47.2 76.1 47.1 77.4 47 78.2 L 46.5 81.2 C 46.3 82.2 45.7 84.9 49.8 83.2 C 53.9 81.5 71.8 70.2 79.8 60.9 C 83.4 56.8 85 51.7 85 46 Z" fill="#FFFFFF" stroke="#111111" stroke-width="5.5" stroke-linejoin="round" />
+      <path d="M 27 38 V 55 H 36 M 42 38 V 55 M 49 55 V 38 L 60 55 V 38 M 73 38 H 66 V 55 H 73 M 66 46.5 H 72" fill="none" stroke="#111111" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+  `;
+}
+
+// 應用程式狀態（完全由 Firestore 動態載入）
 let members = [];
 let currentView = 'card'; // 'card' | 'table'
 let groupFilter = 'ALL';  // 'ALL' | 'BOYS' | 'GIRLS' | 'OTHER'
@@ -405,7 +423,7 @@ function renderMembers() {
     const descEl = document.getElementById('empty-state-desc');
     if (members.length === 0) {
       titleEl.textContent = 'Firestore 資料庫目前尚無名單資料';
-      descEl.textContent = '請點擊「新增同學/師長」建立資料，或點擊「匯入通訊錄備份」上傳 JSON 檔案同步至雲端。';
+      descEl.textContent = '請點擊「新增同學/師長」建立第一筆聯絡資料。';
     } else {
       titleEl.textContent = '找不到符合條件的同學資料';
       descEl.textContent = '請嘗試調整搜尋關鍵字或清除目前的篩選條件。';
@@ -427,7 +445,7 @@ function renderMembers() {
 
 function renderCards(list) {
   const container = document.getElementById('card-view-container');
-  container.innerHTML = list.map(m => {
+  container.innerHTML = list.map((m, idx) => {
     const st = STATUS_STYLES[m.status] || STATUS_STYLES['尚未聯繫'];
     const isBoy = m.seat >= 1 && m.seat <= 25;
     const isGirl = m.seat >= 26 && m.seat <= 50;
@@ -498,7 +516,7 @@ function renderCards(list) {
 
             <div class="flex items-center justify-between gap-2 min-h-[24px]">
               <div class="flex items-center gap-2 text-gray-600 truncate">
-                <i data-lucide="message-circle" class="w-4 h-4 text-emerald-600 shrink-0"></i>
+                ${getLineBrandIconSVG(idx)}
                 ${hasLine
                   ? `<span class="font-medium text-gray-800 truncate">${escapeHTML(m.line)}</span>`
                   : `<span class="text-gray-400 text-xs italic">尚未填寫 LINE</span>`
@@ -796,7 +814,7 @@ function requestDeleteMember() {
 }
 
 // ==========================================
-// 7. 匯出 CSV / JSON、匯入批次寫入與群組摘要複製
+// 7. 匯出 Excel / CSV 試算表
 // ==========================================
 function openDataToolsModal() {
   const modal = document.getElementById('datatools-modal');
@@ -841,113 +859,7 @@ function exportCSV() {
   link.click();
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
-  showToast('已下載 Excel 相容 CSV 檔案！');
-}
-
-function exportJSON() {
-  const sorted = [...members].sort((a, b) => a.seat - b.seat);
-  const dataStr = JSON.stringify(sorted, null, 2);
-  const blob = new Blob([dataStr], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  const today = new Date().toISOString().slice(0, 10);
-  link.href = url;
-  link.download = `大林國中3年7班通訊錄備份_${today}.json`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-  showToast('已下載完整 JSON 備份檔！');
-}
-
-function importJSON(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = async function(e) {
-    try {
-      const imported = JSON.parse(e.target.result);
-      if (!Array.isArray(imported) || imported.length === 0) {
-        throw new Error('格式不符');
-      }
-      const valid = imported.every(item => typeof item.name === 'string' && typeof item.seat === 'number');
-      if (!valid) {
-        throw new Error('缺少座號或姓名欄位');
-      }
-
-      const normalized = imported.map((item, index) => {
-        const seatPadded = formatSeat(item.seat);
-        const defaultId = (item.seat >= 1 && item.seat <= 50) ? `seat_${seatPadded}` : `member_${item.seat}_${index}`;
-        return {
-          id: item.id || defaultId,
-          seat: item.seat,
-          name: item.name,
-          gender: item.gender || (item.seat >= 1 && item.seat <= 25 ? '男' : item.seat >= 26 && item.seat <= 50 ? '女' : '師長/其他'),
-          phone: item.phone || '',
-          line: item.line || '',
-          email: item.email || '',
-          address: item.address || '',
-          job: item.job || '',
-          status: STATUS_STYLES[item.status] ? item.status : '尚未聯繫',
-          notes: item.notes || '',
-          updatedAt: item.updatedAt || Date.now()
-        };
-      });
-
-      members = normalized;
-      saveMembersToLocalCache();
-      renderMembers();
-      closeDataToolsModal();
-
-      if (db) {
-        setSyncStatus('syncing', '🟡 正在批次寫入匯入資料至雲端...');
-        const batch = writeBatch(db);
-        const colRef = collection(db, COLLECTION_NAME);
-
-        normalized.forEach(m => {
-          const { id, ...docData } = m;
-          batch.set(doc(colRef, id), docData, { merge: true });
-        });
-
-        await batch.commit();
-        setSyncStatus('connected');
-        showToast(`成功匯入 ${normalized.length} 筆資料並同步至 Firestore 雲端！`);
-      } else {
-        showToast(`成功匯入 ${normalized.length} 筆通訊錄資料（本機快取）！`);
-      }
-    } catch (err) {
-      console.error('匯入 JSON 發生錯誤:', err);
-      showToast('匯入失敗：檔案格式不正確或雲端寫入權限受限。', 'error');
-    }
-    event.target.value = '';
-  };
-  reader.readAsText(file);
-}
-
-function copyLineSummary() {
-  const sorted = [...members].sort((a, b) => a.seat - b.seat);
-  const attending = sorted.filter(m => m.status === '確定出席');
-  const contacted = sorted.filter(m => m.status === '已聯繫');
-  const uncontacted = sorted.filter(m => m.status === '尚未聯繫' || m.status === '失聯中');
-
-  const lines = [
-    `🎓 【大林國中三年七班 (85年畢) 聯絡進度彙整】`,
-    `📊 目前統計：共 ${sorted.length} 位｜確定出席 ${attending.length} 位｜已聯繫 ${contacted.length} 位｜待聯繫 ${uncontacted.length} 位`,
-    ``,
-    `✅ 確定出席 (${attending.length}位)：`,
-    attending.length ? attending.map(m => `${formatSeat(m.seat)}${m.name}`).join('、') : '（尚無）',
-    ``,
-    `🔵 已聯繫洽談中 (${contacted.length}位)：`,
-    contacted.length ? contacted.map(m => `${formatSeat(m.seat)}${m.name}`).join('、') : '（尚無）',
-    ``,
-    `🔍 協尋/尚未聯繫 (${uncontacted.length}位)：`,
-    uncontacted.length ? uncontacted.map(m => `${formatSeat(m.seat)}${m.name}`).join('、') : '（全員皆已聯繫！）',
-    ``,
-    `💡 有認識以上待聯繫同學的朋友，歡迎幫忙牽線回報喔！`
-  ];
-
-  copyText(lines.join('\n'), 'LINE 群組聯絡進度摘要');
+  showToast('已下載 Excel 相容試算表檔案！');
 }
 
 function copyText(text, label = '內容') {
@@ -1035,13 +947,10 @@ window.closeEditModal = closeEditModal;
 window.saveMemberForm = saveMemberForm;
 window.requestDeleteMember = requestDeleteMember;
 window.quickChangeStatus = quickChangeStatus;
-window.copyLineSummary = copyLineSummary;
 window.copyText = copyText;
 window.openDataToolsModal = openDataToolsModal;
 window.closeDataToolsModal = closeDataToolsModal;
 window.exportCSV = exportCSV;
-window.exportJSON = exportJSON;
-window.importJSON = importJSON;
 window.clearLocalCache = clearLocalCache;
 window.quickFilter = quickFilter;
 window.handleSearchAndFilter = handleSearchAndFilter;
