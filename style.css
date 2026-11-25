@@ -1,0 +1,120 @@
+/* ==========================================
+   大林國中三年七班 (85年畢) 同學通訊錄 - 樣式表
+   ========================================== */
+
+:root {
+  --cream-50: #FDFCFA;
+  --cream-100: #FAF7F2;
+  --cream-200: #F3EDE2;
+  --cream-300: #E6DCCB;
+  --forest-700: #244A3C;
+  --forest-800: #1B3B2F;
+  --forest-900: #122920;
+  --forest-950: #0A1913;
+}
+
+body {
+  font-family: "Noto Sans TC", "Inter", sans-serif;
+  background-color: var(--cream-100);
+  color: #1F2937;
+}
+
+.font-serif {
+  font-family: "Noto Serif TC", serif;
+}
+
+/* 自訂品牌主題色輔助類別 */
+.bg-cream-50 { background-color: var(--cream-50); }
+.bg-cream-50\/80 { background-color: rgba(253, 252, 250, 0.8); }
+.bg-cream-100 { background-color: var(--cream-100); }
+.bg-cream-100\/80 { background-color: rgba(250, 247, 242, 0.8); }
+.bg-cream-200 { background-color: var(--cream-200); }
+.bg-cream-200\/70 { background-color: rgba(243, 237, 226, 0.7); }
+.hover\:bg-cream-100:hover { background-color: var(--cream-100); }
+.hover\:bg-cream-200:hover { background-color: var(--cream-200); }
+
+.text-cream-50 { color: var(--cream-50); }
+.text-cream-100 { color: var(--cream-100); }
+.text-cream-200 { color: var(--cream-200); }
+.text-cream-200\/90 { color: rgba(243, 237, 226, 0.9); }
+
+.border-cream-200 { border-color: var(--cream-200); }
+.border-cream-200\/80 { border-color: rgba(243, 237, 226, 0.8); }
+.border-cream-300 { border-color: var(--cream-300); }
+.border-cream-300\/80 { border-color: rgba(230, 220, 203, 0.8); }
+.border-cream-300\/90 { border-color: rgba(230, 220, 203, 0.9); }
+.divide-cream-200 > :not([hidden]) ~ :not([hidden]) { border-color: var(--cream-200); }
+
+.bg-forest-700 { background-color: var(--forest-700); }
+.bg-forest-800 { background-color: var(--forest-800); }
+.bg-forest-800\/10 { background-color: rgba(27, 59, 47, 0.1); }
+.bg-forest-900 { background-color: var(--forest-900); }
+.bg-forest-950\/60 { background-color: rgba(10, 25, 19, 0.6); }
+.bg-forest-950\/70 { background-color: rgba(10, 25, 19, 0.7); }
+
+.hover\:bg-forest-700:hover { background-color: var(--forest-700); }
+.hover\:bg-forest-800:hover { background-color: var(--forest-800); }
+
+.text-forest-700 { color: var(--forest-700); }
+.text-forest-800 { color: var(--forest-800); }
+.text-forest-900 { color: var(--forest-900); }
+.hover\:text-forest-700:hover { color: var(--forest-700); }
+.hover\:text-forest-800:hover { color: var(--forest-800); }
+.hover\:text-forest-900:hover { color: var(--forest-900); }
+.selection\:text-forest-900 ::selection { color: var(--forest-900); }
+.selection\:text-forest-900::selection { color: var(--forest-900); }
+
+.focus\:border-forest-700:focus { border-color: var(--forest-700); }
+.focus\:ring-forest-700\/20:focus { --tw-ring-color: rgba(36, 74, 60, 0.2); }
+
+.from-forest-900 {
+  --tw-gradient-from: var(--forest-900) var(--tw-gradient-from-position);
+  --tw-gradient-to: rgba(18, 41, 32, 0) var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+.via-forest-800 {
+  --tw-gradient-to: rgba(27, 59, 47, 0) var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--forest-800) var(--tw-gradient-via-position), var(--tw-gradient-to);
+}
+.to-forest-700 {
+  --tw-gradient-to: var(--forest-700) var(--tw-gradient-to-position);
+}
+
+/* 頁首網點背景紋理 */
+.header-pattern {
+  background-image: radial-gradient(#FDE68A 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* 卡片立體陰影 */
+.card-shadow {
+  box-shadow: 0 4px 20px -2px rgba(27, 59, 47, 0.06), 0 2px 6px -1px rgba(27, 59, 47, 0.04);
+}
+.card-shadow:hover {
+  box-shadow: 0 12px 28px -4px rgba(27, 59, 47, 0.12), 0 4px 10px -2px rgba(27, 59, 47, 0.06);
+}
+
+/* 隱藏捲軸但保留滾動功能 */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* 列印模式最佳化 */
+@media print {
+  body {
+    background-color: #FFFFFF !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  .print-break-inside {
+    break-inside: avoid;
+  }
+}
