@@ -49,13 +49,9 @@
             <i data-lucide="user-plus" class="w-4 h-4"></i>
             <span>新增同學/師長</span>
           </button>
-          <button onclick="copyLineSummary()" class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-white border border-white/20 font-medium text-sm backdrop-blur-sm transition active:scale-95" title="複製文字版進度與名單貼到 LINE 群組">
-            <i data-lucide="message-square-share" class="w-4 h-4 text-amber-300"></i>
-            <span>複製群組摘要</span>
-          </button>
           <button onclick="openDataToolsModal()" class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-white border border-white/20 font-medium text-sm backdrop-blur-sm transition active:scale-95">
-            <i data-lucide="folder-sync" class="w-4 h-4 text-amber-300"></i>
-            <span>匯出 / 匯入</span>
+            <i data-lucide="file-spreadsheet" class="w-4 h-4 text-amber-300"></i>
+            <span>匯出 Excel 試算表</span>
           </button>
         </div>
       </div>
@@ -236,13 +232,13 @@
         <i data-lucide="database" class="w-8 h-8"></i>
       </div>
       <h3 id="empty-state-title" class="text-lg font-bold text-forest-900">目前尚無符合條件的資料</h3>
-      <p id="empty-state-desc" class="text-sm text-gray-500 mt-1 mb-5">請確認 Firestore 雲端連線狀態，或調整篩選條件、匯入備份名單。</p>
+      <p id="empty-state-desc" class="text-sm text-gray-500 mt-1 mb-5">請確認 Firestore 雲端連線狀態，或調整篩選條件。</p>
       <div class="flex flex-wrap items-center justify-center gap-3">
         <button onclick="resetAllFilters()" class="px-5 py-2.5 rounded-xl bg-forest-800 hover:bg-forest-700 text-white text-sm font-medium transition">
           重設篩選條件
         </button>
-        <button onclick="openDataToolsModal()" class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium transition">
-          匯入通訊錄備份
+        <button onclick="openAddModal()" class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium transition">
+          新增同學/師長
         </button>
       </div>
     </div>
@@ -253,7 +249,7 @@
   <footer class="bg-cream-200/70 border-t border-cream-300 mt-12 py-6 text-center text-xs sm:text-sm text-gray-600 no-print">
     <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
       <p class="font-serif font-semibold text-forest-900">大林國中三年七班（85年畢）同學會籌備聯絡網</p>
-      <p class="text-gray-500">所有聯絡個資皆存於雲端資料庫，建議定期匯出備份。</p>
+      <p class="text-gray-500">所有聯絡個資皆存於雲端資料庫，支援即時同步與 Excel 試算表匯出。</p>
     </div>
   </footer>
 
@@ -363,13 +359,13 @@
     </div>
   </div>
 
-  <!-- 匯出、備份與資料管理 Modal -->
+  <!-- 匯出通訊錄 Excel 試算表 Modal -->
   <div id="datatools-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-forest-950/60 backdrop-blur-sm">
     <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-cream-300 overflow-hidden">
       <div class="bg-forest-800 text-white px-6 py-4 flex items-center justify-between">
         <div class="flex items-center gap-2.5">
-          <i data-lucide="folder-sync" class="w-5 h-5 text-amber-300"></i>
-          <h2 class="font-serif text-lg font-bold">通訊錄匯出、匯入與雲端同步</h2>
+          <i data-lucide="file-spreadsheet" class="w-5 h-5 text-amber-300"></i>
+          <h2 class="font-serif text-lg font-bold">匯出通訊錄 Excel 試算表</h2>
         </div>
         <button onclick="closeDataToolsModal()" class="p-1.5 rounded-lg text-cream-200 hover:text-white hover:bg-white/10 transition">
           <i data-lucide="x" class="w-5 h-5"></i>
@@ -381,40 +377,13 @@
           <div>
             <h3 class="font-bold text-forest-900 text-sm flex items-center gap-1.5">
               <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-600"></i>
-              匯出 Excel / CSV 表格檔
+              匯出 Excel / CSV 試算表檔
             </h3>
-            <p class="text-xs text-gray-500 mt-1">含 UTF-8 編碼防亂碼，可直接用 Excel 開啟或傳送到群組查閱。</p>
+            <p class="text-xs text-gray-500 mt-1">含 UTF-8 編碼防亂碼，可直接用 Microsoft Excel 或 Google 試算表開啟查閱。</p>
           </div>
           <button onclick="exportCSV()" class="shrink-0 px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs sm:text-sm font-medium transition">
-            下載 CSV
+            下載試算表
           </button>
-        </div>
-
-        <div class="p-4 rounded-xl bg-cream-50 border border-cream-300 flex items-center justify-between gap-4">
-          <div>
-            <h3 class="font-bold text-forest-900 text-sm flex items-center gap-1.5">
-              <i data-lucide="download" class="w-4 h-4 text-amber-600"></i>
-              匯出完整備份檔 (.json)
-            </h3>
-            <p class="text-xs text-gray-500 mt-1">保存所有欄位與進度，方便離線封存或轉移資料。</p>
-          </div>
-          <button onclick="exportJSON()" class="shrink-0 px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs sm:text-sm font-medium transition">
-            下載備份
-          </button>
-        </div>
-
-        <div class="p-4 rounded-xl bg-cream-50 border border-cream-300 flex items-center justify-between gap-4">
-          <div>
-            <h3 class="font-bold text-forest-900 text-sm flex items-center gap-1.5">
-              <i data-lucide="upload" class="w-4 h-4 text-sky-600"></i>
-              匯入備份檔至雲端 (.json)
-            </h3>
-            <p class="text-xs text-gray-500 mt-1">選擇 JSON 備份檔案，系統將自動批次寫入並同步至 Firestore 資料庫。</p>
-          </div>
-          <label class="shrink-0 px-4 py-2 rounded-xl bg-sky-700 hover:bg-sky-800 text-white text-xs sm:text-sm font-medium cursor-pointer transition">
-            選擇檔案
-            <input type="file" id="import-json-input" accept=".json" onchange="importJSON(event)" class="hidden" />
-          </label>
         </div>
 
         <div class="pt-3 border-t border-cream-200 flex items-center justify-between gap-3">
@@ -425,7 +394,7 @@
 
           <button onclick="clearLocalCache()" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-gray-600 hover:bg-cream-100 text-xs sm:text-sm font-medium transition">
             <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-            <span>清除本機快取並重整</span>
+            <span>重新同步雲端資料</span>
           </button>
         </div>
       </div>
