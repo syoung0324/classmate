@@ -1,0 +1,1753 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>大林國中三年七班 (85年畢) 同學通訊錄</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Noto Serif TC & Noto Sans TC & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&family=Noto+Serif+TC:wght@600;700&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Noto Sans TC"', 'Inter', 'sans-serif'],
+            serif: ['"Noto Serif TC"', 'serif'],
+          },
+          colors: {
+            cream: {
+              50: '#FDFCFA',
+              100: '#FAF7F2',
+              200: '#F3EDE2',
+              300: '#E6DCCB',
+            },
+            forest: {
+              700: '#244A3C',
+              800: '#1B3B2F',
+              900: '#122920',
+            },
+            amber: {
+              500: '#D97706',
+              600: '#B45309',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* 自訂捲軸與列印最佳化 */
+    body {
+      background-color: #FAF7F2;
+      color: #1F2937;
+    }
+    .card-shadow {
+      box-shadow: 0 4px 20px -2px rgba(27, 59, 47, 0.06), 0 2px 6px -1px rgba(27, 59, 47, 0.04);
+    }
+    .card-shadow:hover {
+      box-shadow: 0 12px 28px -4px rgba(27, 59, 47, 0.12), 0 4px 10px -2px rgba(27, 59, 47, 0.06);
+    }
+    /* 隱藏捲軸但保留滾動功能 */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    @media print {
+      body {
+        background-color: #FFFFFF !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-only {
+        display: block !important;
+      }
+      .print-break-inside {
+        break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-amber-200 selection:text-forest-900">
+
+  <!-- 頂部典雅校園主題橫幅 -->
+  <header class="bg-gradient-to-br from-forest-900 via-forest-800 to-forest-700 text-cream-50 relative overflow-hidden shadow-lg">
+    <!-- 裝飾性背景紋理 -->
+    <div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: radial-gradient(#FDE68A 1px, transparent 1px); background-size: 24px 24px;"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-7 sm:py-9 relative z-10">
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+        <div>
+          <div class="flex flex-wrap items-center gap-2 mb-3">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/30 text-amber-200 text-xs sm:text-sm font-medium">
+              <i data-lucide="graduation-cap" class="w-4 h-4 text-amber-300"></i>
+              <span>民國 85 年畢業・珍藏青春同窗情誼</span>
+            </div>
+            <!-- Firestore 即時同步狀態徽章 -->
+            <div id="sync-status-badge" onclick="showSyncDetails()" class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-cream-100 text-xs sm:text-sm font-medium backdrop-blur-sm transition hover:bg-white/20" title="點擊查看雲端同步狀態說明">
+              <span id="sync-status-dot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+              <span id="sync-status-text">🟡 正在連線至 Firestore 雲端...</span>
+            </div>
+          </div>
+          <h1 class="font-serif text-2xl sm:text-3xl lg:text-4xl font-bold tracking-wide text-white flex flex-wrap items-center gap-3">
+            大林國中三年七班
+            <span class="text-amber-300 text-xl sm:text-2xl lg:text-3xl font-semibold">同學通訊錄</span>
+          </h1>
+          <p class="text-cream-200/90 text-sm sm:text-base mt-2 max-w-2xl">
+            彙整全班 50 位同學最新聯絡方式與近況動態。支援多人即時雲端同步，任何人在手機或電腦編輯更新，全班皆可立即看到最新狀態。
+          </p>
+        </div>
+
+        <!-- 右側快捷功能按鈕組 -->
+        <div class="flex flex-wrap items-center gap-2.5 no-print">
+          <button onclick="openAddModal()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-medium text-sm shadow-md transition active:scale-95">
+            <i data-lucide="user-plus" class="w-4 h-4"></i>
+            <span>新增同學/師長</span>
+          </button>
+          <button onclick="copyLineSummary()" class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-white border border-white/20 font-medium text-sm backdrop-blur-sm transition active:scale-95" title="複製文字版進度與名單貼到 LINE 群組">
+            <i data-lucide="message-square-share" class="w-4 h-4 text-amber-300"></i>
+            <span>複製群組摘要</span>
+          </button>
+          <button onclick="openDataToolsModal()" class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-white border border-white/20 font-medium text-sm backdrop-blur-sm transition active:scale-95">
+            <i data-lucide="folder-sync" class="w-4 h-4 text-amber-300"></i>
+            <span>匯出 / 備份</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主要內容容器 -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
+
+    <!-- 1. 數據統計儀表板 -->
+    <section aria-label="聯絡進度統計" class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <!-- 總人數 -->
+      <div onclick="quickFilter('ALL')" class="cursor-pointer bg-white rounded-2xl p-4 sm:p-5 border border-cream-300/80 card-shadow transition hover:-translate-y-0.5">
+        <div class="flex items-center justify-between">
+          <span class="text-xs sm:text-sm font-medium text-gray-500">班級總人數</span>
+          <div class="w-9 h-9 rounded-xl bg-forest-800/10 text-forest-800 flex items-center justify-center">
+            <i data-lucide="users" class="w-5 h-5"></i>
+          </div>
+        </div>
+        <div class="mt-2 flex items-baseline gap-2">
+          <span id="stat-total" class="text-2xl sm:text-3xl font-bold text-forest-900">50</span>
+          <span class="text-xs text-gray-500">位</span>
+        </div>
+        <div class="mt-2 text-xs text-gray-500 flex items-center justify-between">
+          <span>男 25 / 女 25</span>
+          <span class="text-forest-700 font-medium">查看全部 →</span>
+        </div>
+      </div>
+
+      <!-- 已建檔聯絡方式 -->
+      <div onclick="quickFilter('HAS_CONTACT')" class="cursor-pointer bg-white rounded-2xl p-4 sm:p-5 border border-cream-300/80 card-shadow transition hover:-translate-y-0.5">
+        <div class="flex items-center justify-between">
+          <span class="text-xs sm:text-sm font-medium text-gray-500">已建檔聯絡資料</span>
+          <div class="w-9 h-9 rounded-xl bg-amber-500/15 text-amber-600 flex items-center justify-center">
+            <i data-lucide="contact" class="w-5 h-5"></i>
+          </div>
+        </div>
+        <div class="mt-2 flex items-baseline gap-2">
+          <span id="stat-filled" class="text-2xl sm:text-3xl font-bold text-amber-600">0</span>
+          <span id="stat-filled-pct" class="text-xs font-medium text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">0%</span>
+        </div>
+        <div class="w-full bg-cream-200 rounded-full h-1.5 mt-3 overflow-hidden">
+          <div id="bar-filled" class="bg-amber-500 h-1.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <!-- 已聯繫人數 -->
+      <div onclick="quickFilter('CONTACTED_ANY')" class="cursor-pointer bg-white rounded-2xl p-4 sm:p-5 border border-cream-300/80 card-shadow transition hover:-translate-y-0.5">
+        <div class="flex items-center justify-between">
+          <span class="text-xs sm:text-sm font-medium text-gray-500">已取得聯繫</span>
+          <div class="w-9 h-9 rounded-xl bg-sky-500/15 text-sky-600 flex items-center justify-center">
+            <i data-lucide="phone-call" class="w-5 h-5"></i>
+          </div>
+        </div>
+        <div class="mt-2 flex items-baseline gap-2">
+          <span id="stat-contacted" class="text-2xl sm:text-3xl font-bold text-sky-700">0</span>
+          <span id="stat-contacted-pct" class="text-xs font-medium text-sky-700 bg-sky-100 px-2 py-0.5 rounded-full">0%</span>
+        </div>
+        <div class="w-full bg-cream-200 rounded-full h-1.5 mt-3 overflow-hidden">
+          <div id="bar-contacted" class="bg-sky-500 h-1.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <!-- 確定出席同學會 -->
+      <div onclick="quickFilter('確定出席')" class="cursor-pointer bg-white rounded-2xl p-4 sm:p-5 border border-cream-300/80 card-shadow transition hover:-translate-y-0.5">
+        <div class="flex items-center justify-between">
+          <span class="text-xs sm:text-sm font-medium text-gray-500">確定出席聚會</span>
+          <div class="w-9 h-9 rounded-xl bg-emerald-500/15 text-emerald-600 flex items-center justify-center">
+            <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+          </div>
+        </div>
+        <div class="mt-2 flex items-baseline gap-2">
+          <span id="stat-attending" class="text-2xl sm:text-3xl font-bold text-emerald-700">0</span>
+          <span id="stat-attending-pct" class="text-xs font-medium text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">0%</span>
+        </div>
+        <div class="w-full bg-cream-200 rounded-full h-1.5 mt-3 overflow-hidden">
+          <div id="bar-attending" class="bg-emerald-500 h-1.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. 搜尋、多維篩選與檢視切換列 -->
+    <section class="bg-white rounded-2xl p-4 sm:p-5 border border-cream-300/80 card-shadow space-y-4 no-print">
+      <div class="flex flex-col md:flex-row gap-3">
+        <!-- 關鍵字搜尋框 -->
+        <div class="relative flex-1">
+          <i data-lucide="search" class="w-5 h-5 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+          <input
+            type="text"
+            id="search-input"
+            oninput="handleSearchAndFilter()"
+            placeholder="搜尋座號、姓名、電話、LINE、縣市、職業或備註..."
+            class="w-full pl-11 pr-10 py-2.5 rounded-xl bg-cream-50 border border-cream-300 focus:border-forest-700 focus:ring-2 focus:ring-forest-700/20 outline-none text-sm sm:text-base transition"
+          />
+          <button id="clear-search-btn" onclick="clearSearch()" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <!-- 排序與檢視切換 -->
+        <div class="flex items-center gap-2 sm:gap-3">
+          <select id="sort-select" onchange="handleSearchAndFilter()" class="px-3.5 py-2.5 rounded-xl bg-cream-50 border border-cream-300 text-sm font-medium text-gray-700 focus:border-forest-700 outline-none cursor-pointer">
+            <option value="seat-asc">座號：1 → 50</option>
+            <option value="seat-desc">座號：50 → 1</option>
+            <option value="status">依聯絡狀態排序</option>
+            <option value="updated">最近更新優先</option>
+          </select>
+
+          <!-- 檢視切換按鈕 -->
+          <div class="inline-flex rounded-xl bg-cream-100 p-1 border border-cream-300">
+            <button id="btn-view-card" onclick="setViewMode('card')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-forest-800 text-white shadow-sm transition">
+              <i data-lucide="layout-grid" class="w-4 h-4"></i>
+              <span class="hidden sm:inline">卡片</span>
+            </button>
+            <button id="btn-view-table" onclick="setViewMode('table')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 hover:text-forest-900 transition">
+              <i data-lucide="table-2" class="w-4 h-4"></i>
+              <span class="hidden sm:inline">總表</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 快捷標籤篩選列 -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1 border-t border-cream-200">
+        <!-- 組別/性別篩選 -->
+        <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 sm:pb-0">
+          <span class="text-xs font-semibold text-gray-400 mr-1 shrink-0">分組：</span>
+          <button onclick="setGroupFilter('ALL')" data-group="ALL" class="group-pill px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-forest-800 text-white transition shrink-0">全部</button>
+          <button onclick="setGroupFilter('BOYS')" data-group="BOYS" class="group-pill px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-cream-100 text-gray-700 hover:bg-cream-200 transition shrink-0">男生 (1~25號)</button>
+          <button onclick="setGroupFilter('GIRLS')" data-group="GIRLS" class="group-pill px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-cream-100 text-gray-700 hover:bg-cream-200 transition shrink-0">女生 (26~50號)</button>
+          <button onclick="setGroupFilter('OTHER')" data-group="OTHER" class="group-pill px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-cream-100 text-gray-700 hover:bg-cream-200 transition shrink-0">師長/其他</button>
+        </div>
+
+        <!-- 聯絡狀態篩選 -->
+        <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 sm:pb-0">
+          <span class="text-xs font-semibold text-gray-400 mr-1 shrink-0">狀態：</span>
+          <button onclick="setStatusFilter('ALL')" data-status="ALL" class="status-pill px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-amber-600 text-white transition shrink-0">不限</button>
+          <button onclick="setStatusFilter('尚未聯繫')" data-status="尚未聯繫" class="status-pill px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-cream-100 text-gray-700 hover:bg-cream-200 transition shrink-0">尚未聯繫</button>
+          <button onclick="setStatusFilter('已聯繫')" data-status="已聯繫" class="status-pill px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-cream-100 text-gray-700 hover:bg-cream-200 transition shrink-0">已聯繫</button>
+          <button onclick="setStatusFilter('確定出席')" data-status="確定出席" class="status-pill px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-cream-100 text-gray-700 hover:bg-cream-200 transition shrink-0">確定出席</button>
+          <button onclick="setStatusFilter('不克出席')" data-status="不克出席" class="status-pill px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-cream-100 text-gray-700 hover:bg-cream-200 transition shrink-0">不克出席</button>
+          <button onclick="setStatusFilter('失聯中')" data-status="失聯中" class="status-pill px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-cream-100 text-gray-700 hover:bg-cream-200 transition shrink-0">失聯中</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 顯示目前篩選結果數量提示 -->
+    <div class="flex items-center justify-between text-xs sm:text-sm text-gray-600 px-1">
+      <div>
+        顯示 <span id="visible-count" class="font-bold text-forest-900">50</span> 位成員
+        <span id="active-filter-label" class="text-amber-700 font-medium ml-1"></span>
+      </div>
+      <div id="footer-sync-hint" class="text-gray-500 hidden sm:flex items-center gap-1.5">
+        <i data-lucide="cloud" class="w-4 h-4 text-emerald-600"></i>
+        <span>資料已與 Firebase Firestore 雲端資料庫即時同步</span>
+      </div>
+    </div>
+
+    <!-- 3A. 卡片檢視容器 -->
+    <section id="card-view-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
+      <!-- 由 JavaScript 動態渲染 -->
+    </section>
+
+    <!-- 3B. 完整表格總覽檢視容器 -->
+    <section id="table-view-container" class="hidden bg-white rounded-2xl border border-cream-300/80 card-shadow overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-forest-800 text-cream-50 text-xs sm:text-sm font-semibold">
+              <th class="py-3.5 px-3 sm:px-4 whitespace-nowrap">座號</th>
+              <th class="py-3.5 px-3 sm:px-4 whitespace-nowrap">姓名</th>
+              <th class="py-3.5 px-3 sm:px-4 whitespace-nowrap">聯絡狀態</th>
+              <th class="py-3.5 px-3 sm:px-4 whitespace-nowrap">聯絡電話 / 手機</th>
+              <th class="py-3.5 px-3 sm:px-4 whitespace-nowrap">LINE ID</th>
+              <th class="py-3.5 px-3 sm:px-4 whitespace-nowrap">現居縣市 / 地址</th>
+              <th class="py-3.5 px-3 sm:px-4 whitespace-nowrap">職業 / 服務單位</th>
+              <th class="py-3.5 px-3 sm:px-4 whitespace-nowrap">備註 / 近況</th>
+              <th class="py-3.5 px-3 sm:px-4 text-right whitespace-nowrap no-print">操作</th>
+            </tr>
+          </thead>
+          <tbody id="table-body" class="divide-y divide-cream-200 text-sm">
+            <!-- 由 JavaScript 動態渲染 -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 無搜尋結果畫面 -->
+    <div id="empty-state" class="hidden bg-white rounded-2xl p-12 text-center border border-cream-300/80">
+      <div class="w-16 h-16 rounded-full bg-cream-100 text-amber-600 flex items-center justify-center mx-auto mb-4">
+        <i data-lucide="search-x" class="w-8 h-8"></i>
+      </div>
+      <h3 class="text-lg font-bold text-forest-900">找不到符合條件的同學資料</h3>
+      <p class="text-sm text-gray-500 mt-1 mb-5">請嘗試調整搜尋關鍵字或清除目前的篩選條件。</p>
+      <button onclick="resetAllFilters()" class="px-5 py-2.5 rounded-xl bg-forest-800 hover:bg-forest-700 text-white text-sm font-medium transition">
+        重設所有篩選條件
+      </button>
+    </div>
+
+  </main>
+
+  <!-- 頁尾 -->
+  <footer class="bg-cream-200/70 border-t border-cream-300 mt-12 py-6 text-center text-xs sm:text-sm text-gray-600 no-print">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <p class="font-serif font-semibold text-forest-900">大林國中三年七班（85年畢）同學會籌備聯絡網</p>
+      <p class="text-gray-500">資料支援 Firestore 多人即時雲端同步與本機離線備援，建議定期匯出備份。</p>
+    </div>
+  </footer>
+
+  <!-- ========================================== -->
+  <!-- 編輯 / 新增同學資料 Modal -->
+  <!-- ========================================== -->
+  <div id="edit-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-forest-950/60 backdrop-blur-sm transition-opacity">
+    <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-cream-300 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      <!-- Modal Header -->
+      <div class="bg-forest-800 text-white px-6 py-4 flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-3">
+          <span id="modal-seat-badge" class="px-2.5 py-1 rounded-lg bg-amber-500 text-white font-bold text-sm">01 號</span>
+          <h2 id="modal-title" class="font-serif text-lg sm:text-xl font-bold">編輯同學聯絡資料</h2>
+        </div>
+        <button onclick="closeEditModal()" class="p-1.5 rounded-lg text-cream-200 hover:text-white hover:bg-white/10 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Modal Form Body -->
+      <form id="member-form" onsubmit="saveMemberForm(event)" class="p-6 overflow-y-auto space-y-4 flex-1">
+        <input type="hidden" id="field-id" />
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <!-- 座號 -->
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 mb-1">座號 / 編號 <span class="text-red-500">*</span></label>
+            <input type="number" id="field-seat" required min="0" max="999" class="w-full px-3.5 py-2.5 rounded-xl bg-cream-50 border border-cream-300 focus:border-forest-700 focus:ring-2 focus:ring-forest-700/20 outline-none text-sm font-semibold" />
+            <p class="text-[11px] text-gray-400 mt-1">1~25為男生，26~50為女生，51以上為師長</p>
+          </div>
+          <!-- 姓名 -->
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 mb-1">姓名 <span class="text-red-500">*</span></label>
+            <input type="text" id="field-name" required placeholder="請輸入姓名" class="w-full px-3.5 py-2.5 rounded-xl bg-cream-50 border border-cream-300 focus:border-forest-700 focus:ring-2 focus:ring-forest-700/20 outline-none text-sm font-bold text-forest-900" />
+          </div>
+          <!-- 聯絡狀態 -->
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 mb-1">聯絡 / 出席狀態</label>
+            <select id="field-status" class="w-full px-3.5 py-2.5 rounded-xl bg-cream-50 border border-cream-300 focus:border-forest-700 focus:ring-2 focus:ring-forest-700/20 outline-none text-sm font-medium">
+              <option value="尚未聯繫">⚪ 尚未聯繫</option>
+              <option value="已聯繫">🔵 已聯繫</option>
+              <option value="確定出席">🟢 確定出席</option>
+              <option value="不克出席">🟠 不克出席</option>
+              <option value="失聯中">🔴 失聯中</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- 聯絡電話 / 手機 -->
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 mb-1">聯絡電話 / 手機</label>
+            <div class="relative">
+              <i data-lucide="phone" class="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+              <input type="tel" id="field-phone" placeholder="例如：0912-345-678" class="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-cream-50 border border-cream-300 focus:border-forest-700 focus:ring-2 focus:ring-forest-700/20 outline-none text-sm" />
+            </div>
+          </div>
+
+          <!-- LINE ID -->
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 mb-1">LINE ID / 群組暱稱</label>
+            <div class="relative">
+              <i data-lucide="message-circle" class="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+              <input type="text" id="field-line" placeholder="輸入 LINE ID 方便加好友" class="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-cream-50 border border-cream-300 focus:border-forest-700 focus:ring-2 focus:ring-forest-700/20 outline-none text-sm" />
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- 電子信箱 -->
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 mb-1">電子信箱 Email</label>
+            <div class="relative">
+              <i data-lucide="mail" class="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+              <input type="email" id="field-email" placeholder="example@email.com" class="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-cream-50 border border-cream-300 focus:border-forest-700 focus:ring-2 focus:ring-forest-700/20 outline-none text-sm" />
+            </div>
+          </div>
+
+          <!-- 職業 / 服務單位 -->
+          <div>
+            <label class="block text-xs font-semibold text-gray-700 mb-1">職業 / 服務單位</label>
+            <div class="relative">
+              <i data-lucide="briefcase" class="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+              <input type="text" id="field-job" placeholder="例如：科技業工程師 / 嘉義縣政府" class="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-cream-50 border border-cream-300 focus:border-forest-700 focus:ring-2 focus:ring-forest-700/20 outline-none text-sm" />
+            </div>
+          </div>
+        </div>
+
+        <!-- 現居縣市 / 通訊地址 -->
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 mb-1">現居縣市 / 通訊地址</label>
+          <div class="relative">
+            <i data-lucide="map-pin" class="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+            <input type="text" id="field-address" placeholder="例如：嘉義縣大林鎮 / 台中市西屯區..." class="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-cream-50 border border-cream-300 focus:border-forest-700 focus:ring-2 focus:ring-forest-700/20 outline-none text-sm" />
+          </div>
+        </div>
+
+        <!-- 個人備註 / 近況分享 -->
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 mb-1">個人備註 / 近況分享（如攜伴人數、飲食習慣、聯絡窗口）</label>
+          <textarea id="field-notes" rows="3" placeholder="紀錄最近動態、由哪位同學聯繫上、或同學會出席細節..." class="w-full p-3.5 rounded-xl bg-cream-50 border border-cream-300 focus:border-forest-700 focus:ring-2 focus:ring-forest-700/20 outline-none text-sm resize-none"></textarea>
+        </div>
+
+        <!-- Modal Footer Actions -->
+        <div class="pt-4 border-t border-cream-200 flex items-center justify-between gap-3">
+          <button type="button" id="btn-delete-member" onclick="requestDeleteMember()" class="hidden inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-red-600 hover:bg-red-50 text-sm font-medium transition">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+            <span>刪除此筆</span>
+          </button>
+          <div class="flex items-center gap-2.5 ml-auto">
+            <button type="button" onclick="closeEditModal()" class="px-4 py-2.5 rounded-xl bg-cream-100 hover:bg-cream-200 text-gray-700 text-sm font-medium transition">
+              取消
+            </button>
+            <button type="submit" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-forest-800 hover:bg-forest-700 text-white text-sm font-medium shadow-md transition active:scale-95">
+              <i data-lucide="save" class="w-4 h-4"></i>
+              <span>儲存變更</span>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 匯出、備份與資料管理 Modal -->
+  <!-- ========================================== -->
+  <div id="datatools-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-forest-950/60 backdrop-blur-sm">
+    <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-cream-300 overflow-hidden">
+      <div class="bg-forest-800 text-white px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <i data-lucide="folder-sync" class="w-5 h-5 text-amber-300"></i>
+          <h2 class="font-serif text-lg font-bold">通訊錄匯出、備份與協作</h2>
+        </div>
+        <button onclick="closeDataToolsModal()" class="p-1.5 rounded-lg text-cream-200 hover:text-white hover:bg-white/10 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4">
+        <!-- 匯出 Excel / CSV -->
+        <div class="p-4 rounded-xl bg-cream-50 border border-cream-300 flex items-center justify-between gap-4">
+          <div>
+            <h3 class="font-bold text-forest-900 text-sm flex items-center gap-1.5">
+              <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-600"></i>
+              匯出 Excel / CSV 表格檔
+            </h3>
+            <p class="text-xs text-gray-500 mt-1">含 UTF-8 編碼防亂碼，可直接用 Excel 開啟或傳送到 LINE 群組供大家查閱。</p>
+          </div>
+          <button onclick="exportCSV()" class="shrink-0 px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs sm:text-sm font-medium transition">
+            下載 CSV
+          </button>
+        </div>
+
+        <!-- 匯出 JSON 備份 -->
+        <div class="p-4 rounded-xl bg-cream-50 border border-cream-300 flex items-center justify-between gap-4">
+          <div>
+            <h3 class="font-bold text-forest-900 text-sm flex items-center gap-1.5">
+              <i data-lucide="download" class="w-4 h-4 text-amber-600"></i>
+              匯出完整備份檔 (.json)
+            </h3>
+            <p class="text-xs text-gray-500 mt-1">保存所有欄位與進度，方便傳給其他籌備幹部匯入接手編輯。</p>
+          </div>
+          <button onclick="exportJSON()" class="shrink-0 px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs sm:text-sm font-medium transition">
+            下載備份
+          </button>
+        </div>
+
+        <!-- 匯入 JSON 備份 -->
+        <div class="p-4 rounded-xl bg-cream-50 border border-cream-300 flex items-center justify-between gap-4">
+          <div>
+            <h3 class="font-bold text-forest-900 text-sm flex items-center gap-1.5">
+              <i data-lucide="upload" class="w-4 h-4 text-sky-600"></i>
+              匯入幹部傳來的備份檔 (.json)
+            </h3>
+            <p class="text-xs text-gray-500 mt-1">選擇備份 JSON 檔案，系統將自動批次寫入並同步至 Firestore 雲端資料庫。</p>
+          </div>
+          <label class="shrink-0 px-4 py-2 rounded-xl bg-sky-700 hover:bg-sky-800 text-white text-xs sm:text-sm font-medium cursor-pointer transition">
+            選擇檔案
+            <input type="file" id="import-json-input" accept=".json" onchange="importJSON(event)" class="hidden" />
+          </label>
+        </div>
+
+        <!-- 列印與還原預設 -->
+        <div class="pt-3 border-t border-cream-200 flex items-center justify-between gap-3">
+          <button onclick="window.print()" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-cream-100 hover:bg-cream-200 text-gray-700 text-xs sm:text-sm font-medium transition">
+            <i data-lucide="printer" class="w-4 h-4"></i>
+            <span>友善列印名單</span>
+          </button>
+
+          <button onclick="requestResetDefault()" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-red-600 hover:bg-red-50 text-xs sm:text-sm font-medium transition">
+            <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+            <span>重設為初始 50 人名單</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 自訂確認對話框 Modal (取代原生 confirm) -->
+  <!-- ========================================== -->
+  <div id="confirm-modal" class="fixed inset-0 z-[60] hidden items-center justify-center p-4 bg-forest-950/70 backdrop-blur-sm">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-cream-300 text-center space-y-4">
+      <div class="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto">
+        <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+      </div>
+      <h3 id="confirm-title" class="text-lg font-bold text-gray-900">確認操作</h3>
+      <p id="confirm-desc" class="text-sm text-gray-600">確定要執行此動作嗎？</p>
+      <div class="flex items-center justify-center gap-3 pt-2">
+        <button onclick="closeConfirmModal()" class="flex-1 px-4 py-2.5 rounded-xl bg-cream-100 hover:bg-cream-200 text-gray-700 text-sm font-medium transition">
+          取消
+        </button>
+        <button id="confirm-yes-btn" class="flex-1 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-medium transition">
+          確定執行
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 輕量提示氣泡 Toast (取代原生 alert) -->
+  <!-- ========================================== -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-[70] flex flex-col gap-2 pointer-events-none"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      doc,
+      setDoc,
+      updateDoc,
+      deleteDoc,
+      onSnapshot,
+      writeBatch,
+      getDocs
+    } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+    // ==========================================
+    // 1. Firebase Firestore 初始化設定
+    // ==========================================
+    const firebaseConfig = {
+      apiKey: "AIzaSyCbYyKk-r9bzUarelUkMXcEDofyB_BZWTc",
+      authDomain: "bandmint-f7ab6.firebaseapp.com",
+      databaseURL: "https://bandmint-f7ab6-default-rtdb.firebaseio.com",
+      projectId: "bandmint-f7ab6",
+      storageBucket: "bandmint-f7ab6.firebasestorage.app",
+      messagingSenderId: "46339355176",
+      appId: "1:46339355176:web:0b3d8dfe359d44dc957b1d",
+      measurementId: "G-GHJ04475H9"
+    };
+
+    const COLLECTION_NAME = 'dalin_307_contacts';
+    const STORAGE_KEY = 'dalin_jhs_307_alumni_v1';
+
+    let db = null;
+    let isCloudConnected = false;
+    let isSeedingInitialData = false;
+    let lastSyncErrorMessage = '';
+
+    try {
+      const app = initializeApp(firebaseConfig);
+      db = getFirestore(app);
+    } catch (err) {
+      console.error('Firebase 初始化失敗:', err);
+      lastSyncErrorMessage = err.message || 'Firebase 初始化異常';
+    }
+
+    // ==========================================
+    // 2. 預設大林國中三年七班 (85年畢) 50 位同學完整名單
+    // ==========================================
+    const DEFAULT_ROSTER = [
+      { seat: 1, name: '丁國豪', gender: '男' }, { seat: 2, name: '李彥德', gender: '男' }, { seat: 3, name: '桂兢聰', gender: '男' }, { seat: 4, name: '紀榮航', gender: '男' }, { seat: 5, name: '吳瑞龍', gender: '男' },
+      { seat: 6, name: '張益誌', gender: '男' }, { seat: 7, name: '許志如', gender: '男' }, { seat: 8, name: '許朝雄', gender: '男' }, { seat: 9, name: '許鴻沂', gender: '男' }, { seat: 10, name: '郭建成', gender: '男' },
+      { seat: 11, name: '曾詠涵', gender: '男' }, { seat: 12, name: '黃進龍', gender: '男' }, { seat: 13, name: '楊竣能', gender: '男' }, { seat: 14, name: '廖聿勳', gender: '男' }, { seat: 15, name: '劉宜旻', gender: '男' },
+      { seat: 16, name: '劉子暘', gender: '男' }, { seat: 17, name: '劉家進', gender: '男' }, { seat: 18, name: '劉聖皇', gender: '男' }, { seat: 19, name: '賴兆民', gender: '男' }, { seat: 20, name: '鄭伊帆', gender: '男' },
+      { seat: 21, name: '矯恆毅', gender: '男' }, { seat: 22, name: '謝亞叡', gender: '男' }, { seat: 23, name: '鍾耀德', gender: '男' }, { seat: 24, name: '簡文修', gender: '男' }, { seat: 25, name: '簡宏達', gender: '男' },
+      { seat: 26, name: '王才信', gender: '女' }, { seat: 27, name: '王渝淳', gender: '女' }, { seat: 28, name: '王碧瑩', gender: '女' }, { seat: 29, name: '江文雅', gender: '女' }, { seat: 30, name: '江伊婷', gender: '女' },
+      { seat: 31, name: '張瀛文', gender: '女' }, { seat: 32, name: '郭怡君', gender: '女' }, { seat: 33, name: '郭秋霞', gender: '女' }, { seat: 34, name: '郭芳如', gender: '女' }, { seat: 35, name: '陳玉齡', gender: '女' },
+      { seat: 36, name: '陳彥如', gender: '女' }, { seat: 37, name: '陳盈汝', gender: '女' }, { seat: 38, name: '陳淑玲', gender: '女' }, { seat: 39, name: '陳嘉蓉', gender: '女' }, { seat: 40, name: '曾雅婷', gender: '女' },
+      { seat: 41, name: '廖美純', gender: '女' }, { seat: 42, name: '劉欣怡', gender: '女' }, { seat: 43, name: '賴筱喻', gender: '女' }, { seat: 44, name: '簡伊珊', gender: '女' }, { seat: 45, name: '簡竹綿', gender: '女' },
+      { seat: 46, name: '簡妙雯', gender: '女' }, { seat: 47, name: '簡婷瑩', gender: '女' }, { seat: 48, name: '簡愛蓮', gender: '女' }, { seat: 49, name: '謝奇伶', gender: '女' }, { seat: 50, name: '歐陽玫卿', gender: '女' }
+    ];
+
+    // 狀態樣式設定
+    const STATUS_STYLES = {
+      '尚未聯繫': { badge: 'bg-gray-100 text-gray-600 border-gray-200', dot: 'bg-gray-400', order: 4 },
+      '已聯繫':   { badge: 'bg-sky-50 text-sky-700 border-sky-200', dot: 'bg-sky-500', order: 2 },
+      '確定出席': { badge: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500', order: 1 },
+      '不克出席': { badge: 'bg-amber-50 text-amber-700 border-amber-200', dot: 'bg-amber-500', order: 3 },
+      '失聯中':   { badge: 'bg-rose-50 text-rose-700 border-rose-200', dot: 'bg-rose-500', order: 5 }
+    };
+
+    // 應用程式狀態
+    let members = [];
+    let currentView = 'card'; // 'card' | 'table'
+    let groupFilter = 'ALL';  // 'ALL' | 'BOYS' | 'GIRLS' | 'OTHER'
+    let statusFilter = 'ALL'; // 'ALL' | 'HAS_CONTACT' | 'CONTACTED_ANY' | status string
+    let confirmCallback = null;
+
+    // ==========================================
+    // 3. 同步狀態 UI 更新與本機備援
+    // ==========================================
+    function setSyncStatus(state, customMsg = '') {
+      const dot = document.getElementById('sync-status-dot');
+      const text = document.getElementById('sync-status-text');
+      const footerHint = document.getElementById('footer-sync-hint');
+
+      if (!dot || !text) return;
+
+      if (state === 'connected') {
+        isCloudConnected = true;
+        dot.className = 'w-2 h-2 rounded-full bg-emerald-400';
+        text.textContent = customMsg || '🟢 Firestore 雲端即時同步中';
+        if (footerHint) {
+          footerHint.innerHTML = `<i data-lucide="cloud" class="w-4 h-4 text-emerald-600"></i><span>資料已與 Firebase Firestore 雲端資料庫即時同步</span>`;
+          lucide.createIcons();
+        }
+      } else if (state === 'syncing') {
+        dot.className = 'w-2 h-2 rounded-full bg-amber-400 animate-ping';
+        text.textContent = customMsg || '🟡 寫入同步中...';
+      } else if (state === 'error') {
+        isCloudConnected = false;
+        dot.className = 'w-2 h-2 rounded-full bg-rose-500';
+        text.textContent = customMsg || '🔴 連線異常（請檢查 Firestore 權限規則）';
+        if (footerHint) {
+          footerHint.innerHTML = `<i data-lucide="hard-drive" class="w-4 h-4 text-amber-600"></i><span>目前處於本機離線備援模式，變更仍會自動儲存於瀏覽器</span>`;
+          lucide.createIcons();
+        }
+      }
+    }
+
+    function showSyncDetails() {
+      if (isCloudConnected) {
+        showToast('已連線至 Firebase Firestore (dalin_307_contacts)，任何修改將即時同步給所有同學！');
+      } else {
+        showToast(`雲端同步暫時無法連線：${lastSyncErrorMessage || '請確認網路狀態或 Firestore 讀寫安全規則是否已開啟'}。目前使用本機儲存備援中。`, 'error');
+      }
+    }
+
+    function buildInitialMembers() {
+      return DEFAULT_ROSTER.map(item => {
+        const seatPadded = item.seat < 10 ? `0${item.seat}` : `${item.seat}`;
+        return {
+          id: `seat_${seatPadded}`,
+          seat: item.seat,
+          name: item.name,
+          gender: item.gender,
+          phone: '',
+          line: '',
+          email: '',
+          address: '',
+          job: '',
+          status: '尚未聯繫',
+          notes: '',
+          updatedAt: 0
+        };
+      });
+    }
+
+    function loadLocalFallback() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            members = parsed;
+            return;
+          }
+        }
+      } catch (e) {
+        console.error('讀取本機儲存失敗:', e);
+      }
+      members = buildInitialMembers();
+      saveMembersToLocalStorage();
+    }
+
+    function saveMembersToLocalStorage() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(members));
+      } catch (e) {
+        console.error('寫入本機儲存失敗:', e);
+      }
+    }
+
+    // 首次自動初始化 50 位同學至 Firestore (使用 writeBatch)
+    async function seedInitialMembersToFirestore() {
+      if (!db || isSeedingInitialData) return;
+      isSeedingInitialData = true;
+      setSyncStatus('syncing', '🟡 首次連線，正在初始化 50 位同學名單至雲端...');
+
+      try {
+        // 優先檢查本機是否已有編輯過的資料，若有則一併同步上去，否則使用預設 50 人名單
+        let initialList = buildInitialMembers();
+        try {
+          const localRaw = localStorage.getItem(STORAGE_KEY);
+          if (localRaw) {
+            const localParsed = JSON.parse(localRaw);
+            if (Array.isArray(localParsed) && localParsed.length > 0) {
+              initialList = localParsed.map(m => {
+                const seatPadded = m.seat < 10 ? `0${m.seat}` : `${m.seat}`;
+                const docId = (m.seat >= 1 && m.seat <= 50) ? `seat_${seatPadded}` : (m.id || `member_${m.seat}`);
+                return { ...m, id: docId };
+              });
+            }
+          }
+        } catch (_) {}
+
+        const batch = writeBatch(db);
+        const colRef = collection(db, COLLECTION_NAME);
+
+        initialList.forEach(item => {
+          const { id, ...docData } = item;
+          const docRef = doc(colRef, id);
+          batch.set(docRef, {
+            ...docData,
+            updatedAt: item.updatedAt || Date.now()
+          });
+        });
+
+        await batch.commit();
+        showToast('已自動將 50 位同學名單初始化寫入 Firestore 雲端！');
+      } catch (err) {
+        console.error('Firestore 首次批次寫入失敗:', err);
+        lastSyncErrorMessage = err.message || '權限不足或網路異常';
+        setSyncStatus('error');
+        showToast('無法寫入 Firestore（請檢查資料庫安全規則），已切換為本機離線模式。', 'error');
+      } finally {
+        isSeedingInitialData = false;
+      }
+    }
+
+    // 啟動 Firestore 即時監聽 (onSnapshot)
+    function initFirestoreSync() {
+      // 先載入本機快取讓畫面秒開不空白
+      loadLocalFallback();
+      renderMembers();
+
+      if (!db) {
+        setSyncStatus('error');
+        return;
+      }
+
+      const colRef = collection(db, COLLECTION_NAME);
+
+      onSnapshot(
+        colRef,
+        async (snapshot) => {
+          if (snapshot.empty) {
+            // 偵測到集合為空，執行首次自動初始化
+            await seedInitialMembersToFirestore();
+            return;
+          }
+
+          const cloudList = [];
+          snapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            cloudList.push({
+              id: docSnap.id,
+              seat: Number(data.seat) || 0,
+              name: data.name || '',
+              gender: data.gender || (data.seat >= 1 && data.seat <= 25 ? '男' : data.seat >= 26 && data.seat <= 50 ? '女' : ''),
+              phone: data.phone || '',
+              line: data.line || '',
+              email: data.email || '',
+              address: data.address || '',
+              job: data.job || '',
+              status: STATUS_STYLES[data.status] ? data.status : '尚未聯繫',
+              notes: data.notes || '',
+              updatedAt: data.updatedAt || 0
+            });
+          });
+
+          members = cloudList;
+          saveMembersToLocalStorage();
+          setSyncStatus('connected');
+          renderMembers();
+        },
+        (error) => {
+          console.error('Firestore onSnapshot 監聽錯誤:', error);
+          lastSyncErrorMessage = error.code === 'permission-denied'
+            ? 'Firestore 安全規則拒絕存取 (permission-denied)'
+            : (error.message || '網路連線中斷');
+          setSyncStatus('error');
+          showToast('Firestore 雲端連線異常（請檢查權限規則），已啟用本機離線備援。', 'error');
+        }
+      );
+    }
+
+    // ==========================================
+    // 4. 統計數據更新與渲染
+    // ==========================================
+    function updateStatistics() {
+      const total = members.length;
+      const filledCount = members.filter(m =>
+        (m.phone && m.phone.trim()) ||
+        (m.line && m.line.trim()) ||
+        (m.email && m.email.trim()) ||
+        (m.address && m.address.trim())
+      ).length;
+
+      const contactedCount = members.filter(m =>
+        ['已聯繫', '確定出席', '不克出席'].includes(m.status)
+      ).length;
+
+      const attendingCount = members.filter(m => m.status === '確定出席').length;
+
+      const filledPct = total ? Math.round((filledCount / total) * 100) : 0;
+      const contactedPct = total ? Math.round((contactedCount / total) * 100) : 0;
+      const attendingPct = total ? Math.round((attendingCount / total) * 100) : 0;
+
+      document.getElementById('stat-total').textContent = total;
+      document.getElementById('stat-filled').textContent = filledCount;
+      document.getElementById('stat-filled-pct').textContent = `${filledPct}%`;
+      document.getElementById('bar-filled').style.width = `${filledPct}%`;
+
+      document.getElementById('stat-contacted').textContent = contactedCount;
+      document.getElementById('stat-contacted-pct').textContent = `${contactedPct}%`;
+      document.getElementById('bar-contacted').style.width = `${contactedPct}%`;
+
+      document.getElementById('stat-attending').textContent = attendingCount;
+      document.getElementById('stat-attending-pct').textContent = `${attendingPct}%`;
+      document.getElementById('bar-attending').style.width = `${attendingPct}%`;
+    }
+
+    // ==========================================
+    // 5. 篩選、排序與檢視切換
+    // ==========================================
+    function getFilteredAndSortedMembers() {
+      const keyword = document.getElementById('search-input').value.trim().toLowerCase();
+      const sortBy = document.getElementById('sort-select').value;
+
+      const clearBtn = document.getElementById('clear-search-btn');
+      if (keyword) {
+        clearBtn.classList.remove('hidden');
+      } else {
+        clearBtn.classList.add('hidden');
+      }
+
+      let filtered = members.filter(m => {
+        if (groupFilter === 'BOYS' && (m.seat < 1 || m.seat > 25)) return false;
+        if (groupFilter === 'GIRLS' && (m.seat < 26 || m.seat > 50)) return false;
+        if (groupFilter === 'OTHER' && (m.seat >= 1 && m.seat <= 50)) return false;
+
+        if (statusFilter === 'HAS_CONTACT') {
+          const hasInfo = (m.phone && m.phone.trim()) || (m.line && m.line.trim()) || (m.email && m.email.trim()) || (m.address && m.address.trim());
+          if (!hasInfo) return false;
+        } else if (statusFilter === 'CONTACTED_ANY') {
+          if (!['已聯繫', '確定出席', '不克出席'].includes(m.status)) return false;
+        } else if (statusFilter !== 'ALL') {
+          if (m.status !== statusFilter) return false;
+        }
+
+        if (keyword) {
+          const seatStr = String(m.seat).padStart(2, '0') + ' ' + String(m.seat);
+          const searchable = [
+            seatStr,
+            m.name,
+            m.phone,
+            m.line,
+            m.email,
+            m.address,
+            m.job,
+            m.status,
+            m.notes
+          ].join(' ').toLowerCase();
+          if (!searchable.includes(keyword)) return false;
+        }
+
+        return true;
+      });
+
+      filtered.sort((a, b) => {
+        if (sortBy === 'seat-asc') return a.seat - b.seat;
+        if (sortBy === 'seat-desc') return b.seat - a.seat;
+        if (sortBy === 'status') {
+          const oa = STATUS_STYLES[a.status]?.order || 99;
+          const ob = STATUS_STYLES[b.status]?.order || 99;
+          return oa !== ob ? oa - ob : a.seat - b.seat;
+        }
+        if (sortBy === 'updated') {
+          return (b.updatedAt || 0) - (a.updatedAt || 0) || (a.seat - b.seat);
+        }
+        return a.seat - b.seat;
+      });
+
+      return filtered;
+    }
+
+    function handleSearchAndFilter() {
+      renderMembers();
+    }
+
+    function clearSearch() {
+      document.getElementById('search-input').value = '';
+      handleSearchAndFilter();
+    }
+
+    function setGroupFilter(group) {
+      groupFilter = group;
+      document.querySelectorAll('.group-pill').forEach(btn => {
+        if (btn.dataset.group === group) {
+          btn.className = 'group-pill px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-forest-800 text-white transition shrink-0';
+        } else {
+          btn.className = 'group-pill px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-cream-100 text-gray-700 hover:bg-cream-200 transition shrink-0';
+        }
+      });
+      renderMembers();
+    }
+
+    function setStatusFilter(status) {
+      statusFilter = status;
+      document.querySelectorAll('.status-pill').forEach(btn => {
+        if (btn.dataset.status === status) {
+          btn.className = 'status-pill px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-amber-600 text-white transition shrink-0';
+        } else {
+          btn.className = 'status-pill px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-cream-100 text-gray-700 hover:bg-cream-200 transition shrink-0';
+        }
+      });
+      renderMembers();
+    }
+
+    function quickFilter(type) {
+      setGroupFilter('ALL');
+      if (type === 'ALL') {
+        setStatusFilter('ALL');
+      } else if (type === 'HAS_CONTACT') {
+        statusFilter = 'HAS_CONTACT';
+        document.querySelectorAll('.status-pill').forEach(btn => {
+          btn.className = 'status-pill px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-cream-100 text-gray-700 hover:bg-cream-200 transition shrink-0';
+        });
+        renderMembers();
+      } else if (type === 'CONTACTED_ANY') {
+        statusFilter = 'CONTACTED_ANY';
+        document.querySelectorAll('.status-pill').forEach(btn => {
+          btn.className = 'status-pill px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-cream-100 text-gray-700 hover:bg-cream-200 transition shrink-0';
+        });
+        renderMembers();
+      } else {
+        setStatusFilter(type);
+      }
+    }
+
+    function resetAllFilters() {
+      document.getElementById('search-input').value = '';
+      setGroupFilter('ALL');
+      setStatusFilter('ALL');
+    }
+
+    function setViewMode(mode) {
+      currentView = mode;
+      const btnCard = document.getElementById('btn-view-card');
+      const btnTable = document.getElementById('btn-view-table');
+      const cardContainer = document.getElementById('card-view-container');
+      const tableContainer = document.getElementById('table-view-container');
+
+      if (mode === 'card') {
+        btnCard.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-forest-800 text-white shadow-sm transition';
+        btnTable.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 hover:text-forest-900 transition';
+        cardContainer.classList.remove('hidden');
+        tableContainer.classList.add('hidden');
+      } else {
+        btnTable.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-forest-800 text-white shadow-sm transition';
+        btnCard.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 hover:text-forest-900 transition';
+        tableContainer.classList.remove('hidden');
+        cardContainer.classList.add('hidden');
+      }
+      renderMembers();
+    }
+
+    // ==========================================
+    // 6. 畫面渲染 (卡片 & 表格)
+    // ==========================================
+    function escapeHTML(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function formatSeat(seat) {
+      return seat < 10 ? `0${seat}` : `${seat}`;
+    }
+
+    function renderMembers() {
+      updateStatistics();
+      const list = getFilteredAndSortedMembers();
+      document.getElementById('visible-count').textContent = list.length;
+
+      const filterLabel = document.getElementById('active-filter-label');
+      if (statusFilter === 'HAS_CONTACT') {
+        filterLabel.textContent = '（篩選：已建檔聯絡資料）';
+      } else if (statusFilter === 'CONTACTED_ANY') {
+        filterLabel.textContent = '（篩選：已取得聯繫）';
+      } else if (statusFilter !== 'ALL') {
+        filterLabel.textContent = `（篩選：${statusFilter}）`;
+      } else {
+        filterLabel.textContent = '';
+      }
+
+      const emptyState = document.getElementById('empty-state');
+      const cardContainer = document.getElementById('card-view-container');
+      const tableContainer = document.getElementById('table-view-container');
+
+      if (list.length === 0) {
+        emptyState.classList.remove('hidden');
+        cardContainer.classList.add('hidden');
+        tableContainer.classList.add('hidden');
+        return;
+      } else {
+        emptyState.classList.add('hidden');
+        if (currentView === 'card') {
+          cardContainer.classList.remove('hidden');
+          tableContainer.classList.add('hidden');
+          renderCards(list);
+        } else {
+          tableContainer.classList.remove('hidden');
+          cardContainer.classList.add('hidden');
+          renderTable(list);
+        }
+      }
+      lucide.createIcons();
+    }
+
+    function renderCards(list) {
+      const container = document.getElementById('card-view-container');
+      container.innerHTML = list.map(m => {
+        const st = STATUS_STYLES[m.status] || STATUS_STYLES['尚未聯繫'];
+        const isBoy = m.seat >= 1 && m.seat <= 25;
+        const isGirl = m.seat >= 26 && m.seat <= 50;
+        const seatBg = isBoy
+          ? 'bg-forest-800 text-cream-50'
+          : isGirl
+            ? 'bg-amber-600 text-white'
+            : 'bg-purple-800 text-white';
+
+        const hasPhone = m.phone && m.phone.trim();
+        const hasLine = m.line && m.line.trim();
+        const hasEmail = m.email && m.email.trim();
+        const hasAddress = m.address && m.address.trim();
+        const hasJob = m.job && m.job.trim();
+        const hasNotes = m.notes && m.notes.trim();
+
+        return `
+          <article class="bg-white rounded-2xl border border-cream-300/90 card-shadow flex flex-col justify-between transition duration-200 hover:-translate-y-0.5 print-break-inside group">
+            <!-- 卡片頂部：座號、姓名、狀態與編輯 -->
+            <div class="p-4 sm:p-5 pb-3">
+              <div class="flex items-start justify-between gap-2">
+                <div class="flex items-center gap-3">
+                  <div class="w-11 h-11 rounded-xl ${seatBg} flex flex-col items-center justify-center shrink-0 shadow-sm">
+                    <span class="text-[10px] opacity-80 leading-none">座號</span>
+                    <span class="text-base font-bold leading-tight mt-0.5">${formatSeat(m.seat)}</span>
+                  </div>
+                  <div>
+                    <h3 onclick="openEditModal('${m.id}')" class="font-serif text-lg sm:text-xl font-bold text-forest-900 cursor-pointer hover:text-amber-600 transition">
+                      ${escapeHTML(m.name)}
+                    </h3>
+                    <!-- 快速狀態下拉切換 -->
+                    <div class="mt-1 inline-flex items-center">
+                      <select
+                        onchange="quickChangeStatus('${m.id}', this.value)"
+                        aria-label="變更 ${escapeHTML(m.name)} 的聯絡狀態"
+                        class="text-xs font-medium px-2.5 py-0.5 rounded-full border ${st.badge} cursor-pointer outline-none focus:ring-2 focus:ring-amber-400/50 transition"
+                      >
+                        ${Object.keys(STATUS_STYLES).map(s => `
+                          <option value="${s}" ${m.status === s ? 'selected' : ''}>${s}</option>
+                        `).join('')}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  onclick="openEditModal('${m.id}')"
+                  class="p-2 rounded-xl text-gray-400 hover:text-forest-800 hover:bg-cream-100 transition no-print"
+                  title="編輯詳細資料"
+                >
+                  <i data-lucide="square-pen" class="w-4 h-4"></i>
+                </button>
+              </div>
+
+              <!-- 聯絡資訊明細列表 -->
+              <div class="mt-4 space-y-2.5 text-sm">
+                <!-- 電話 -->
+                <div class="flex items-center justify-between gap-2 min-h-[24px]">
+                  <div class="flex items-center gap-2 text-gray-600 truncate">
+                    <i data-lucide="phone" class="w-4 h-4 text-forest-700 shrink-0"></i>
+                    ${hasPhone
+                      ? `<a href="tel:${escapeHTML(m.phone)}" class="font-medium text-gray-800 hover:text-forest-700 hover:underline truncate">${escapeHTML(m.phone)}</a>`
+                      : `<span class="text-gray-400 text-xs italic">尚未填寫電話</span>`
+                    }
+                  </div>
+                  ${hasPhone ? `
+                    <button onclick="copyText('${escapeHTML(m.phone)}', '電話號碼')" class="p-1 text-gray-400 hover:text-forest-800 rounded-md hover:bg-cream-100 shrink-0 no-print" title="複製電話">
+                      <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                    </button>
+                  ` : ''}
+                </div>
+
+                <!-- LINE ID -->
+                <div class="flex items-center justify-between gap-2 min-h-[24px]">
+                  <div class="flex items-center gap-2 text-gray-600 truncate">
+                    <i data-lucide="message-circle" class="w-4 h-4 text-emerald-600 shrink-0"></i>
+                    ${hasLine
+                      ? `<span class="font-medium text-gray-800 truncate">${escapeHTML(m.line)}</span>`
+                      : `<span class="text-gray-400 text-xs italic">尚未填寫 LINE</span>`
+                    }
+                  </div>
+                  ${hasLine ? `
+                    <button onclick="copyText('${escapeHTML(m.line)}', 'LINE ID')" class="p-1 text-gray-400 hover:text-emerald-700 rounded-md hover:bg-cream-100 shrink-0 no-print" title="複製 LINE ID">
+                      <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                    </button>
+                  ` : ''}
+                </div>
+
+                <!-- Email -->
+                <div class="flex items-center gap-2 text-gray-600 min-h-[24px] truncate">
+                  <i data-lucide="mail" class="w-4 h-4 text-amber-600 shrink-0"></i>
+                  ${hasEmail
+                    ? `<a href="mailto:${escapeHTML(m.email)}" class="text-gray-700 hover:text-amber-700 hover:underline truncate text-xs sm:text-sm">${escapeHTML(m.email)}</a>`
+                    : `<span class="text-gray-400 text-xs italic">尚未填寫 Email</span>`
+                  }
+                </div>
+
+                <!-- 職業 -->
+                <div class="flex items-center gap-2 text-gray-600 min-h-[24px] truncate">
+                  <i data-lucide="briefcase" class="w-4 h-4 text-sky-700 shrink-0"></i>
+                  ${hasJob
+                    ? `<span class="text-gray-700 truncate text-xs sm:text-sm">${escapeHTML(m.job)}</span>`
+                    : `<span class="text-gray-400 text-xs italic">尚未填寫職業/單位</span>`
+                  }
+                </div>
+
+                <!-- 居住地/地址 -->
+                <div class="flex items-start gap-2 text-gray-600 min-h-[24px]">
+                  <i data-lucide="map-pin" class="w-4 h-4 text-rose-600 shrink-0 mt-0.5"></i>
+                  ${hasAddress
+                    ? `<span class="text-gray-700 text-xs sm:text-sm line-clamp-2">${escapeHTML(m.address)}</span>`
+                    : `<span class="text-gray-400 text-xs italic">尚未填寫現居地</span>`
+                  }
+                </div>
+              </div>
+
+              <!-- 備註區塊 -->
+              ${hasNotes ? `
+                <div class="mt-3 p-2.5 rounded-xl bg-cream-100/80 border border-cream-200 text-xs text-gray-700 leading-relaxed">
+                  <span class="font-semibold text-forest-800">備註：</span>${escapeHTML(m.notes)}
+                </div>
+              ` : ''}
+            </div>
+
+            <!-- 卡片底部編輯行動條 -->
+            <div class="px-4 py-2.5 bg-cream-50/80 border-t border-cream-200/80 rounded-b-2xl flex items-center justify-between no-print">
+              <span class="text-[11px] text-gray-400">
+                ${m.updatedAt ? '已更新資料' : '點擊右側補充資料'}
+              </span>
+              <button
+                onclick="openEditModal('${m.id}')"
+                class="inline-flex items-center gap-1 text-xs font-semibold text-forest-800 hover:text-amber-600 transition"
+              >
+                <span>編輯完整資訊</span>
+                <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function renderTable(list) {
+      const tbody = document.getElementById('table-body');
+      tbody.innerHTML = list.map(m => {
+        const st = STATUS_STYLES[m.status] || STATUS_STYLES['尚未聯繫'];
+        return `
+          <tr class="hover:bg-cream-50 transition">
+            <td class="py-3 px-3 sm:px-4 font-bold text-forest-900 whitespace-nowrap">${formatSeat(m.seat)}</td>
+            <td class="py-3 px-3 sm:px-4 font-serif font-bold text-gray-900 whitespace-nowrap">${escapeHTML(m.name)}</td>
+            <td class="py-3 px-3 sm:px-4 whitespace-nowrap">
+              <select
+                onchange="quickChangeStatus('${m.id}', this.value)"
+                class="text-xs font-medium px-2.5 py-1 rounded-full border ${st.badge} cursor-pointer outline-none"
+              >
+                ${Object.keys(STATUS_STYLES).map(s => `
+                  <option value="${s}" ${m.status === s ? 'selected' : ''}>${s}</option>
+                `).join('')}
+              </select>
+            </td>
+            <td class="py-3 px-3 sm:px-4 whitespace-nowrap">
+              ${m.phone ? `
+                <div class="flex items-center gap-1.5">
+                  <a href="tel:${escapeHTML(m.phone)}" class="text-forest-800 hover:underline font-medium">${escapeHTML(m.phone)}</a>
+                  <button onclick="copyText('${escapeHTML(m.phone)}', '電話')" class="text-gray-400 hover:text-gray-700 no-print" title="複製">
+                    <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                  </button>
+                </div>
+              ` : '<span class="text-gray-300">-</span>'}
+            </td>
+            <td class="py-3 px-3 sm:px-4 whitespace-nowrap">
+              ${m.line ? `
+                <div class="flex items-center gap-1.5">
+                  <span>${escapeHTML(m.line)}</span>
+                  <button onclick="copyText('${escapeHTML(m.line)}', 'LINE ID')" class="text-gray-400 hover:text-gray-700 no-print" title="複製">
+                    <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                  </button>
+                </div>
+              ` : '<span class="text-gray-300">-</span>'}
+            </td>
+            <td class="py-3 px-3 sm:px-4 max-w-[200px] truncate" title="${escapeHTML(m.address)}">${escapeHTML(m.address) || '<span class="text-gray-300">-</span>'}</td>
+            <td class="py-3 px-3 sm:px-4 max-w-[160px] truncate" title="${escapeHTML(m.job)}">${escapeHTML(m.job) || '<span class="text-gray-300">-</span>'}</td>
+            <td class="py-3 px-3 sm:px-4 max-w-[220px] truncate text-xs text-gray-600" title="${escapeHTML(m.notes)}">${escapeHTML(m.notes) || '<span class="text-gray-300">-</span>'}</td>
+            <td class="py-3 px-3 sm:px-4 text-right whitespace-nowrap no-print">
+              <button onclick="openEditModal('${m.id}')" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-cream-100 hover:bg-forest-800 hover:text-white text-forest-900 text-xs font-medium transition">
+                <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                <span>編輯</span>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // ==========================================
+    // 7. 編輯、新增、快速狀態變更與刪除 (同步寫入 Firestore)
+    // ==========================================
+    async function quickChangeStatus(id, newStatus) {
+      const idx = members.findIndex(m => m.id === id);
+      if (idx === -1) return;
+
+      const targetName = members[idx].name;
+      const now = Date.now();
+      members[idx].status = newStatus;
+      members[idx].updatedAt = now;
+      saveMembersToLocalStorage();
+      renderMembers();
+
+      if (db && isCloudConnected) {
+        setSyncStatus('syncing', '🟡 寫入同步中...');
+        try {
+          const docRef = doc(db, COLLECTION_NAME, id);
+          await updateDoc(docRef, {
+            status: newStatus,
+            updatedAt: now
+          });
+          setSyncStatus('connected');
+          showToast(`已雲端同步「${targetName}」狀態為「${newStatus}」`);
+        } catch (err) {
+          console.error('Firestore 快速更新狀態失敗:', err);
+          lastSyncErrorMessage = err.message || '寫入失敗';
+          setSyncStatus('error');
+          showToast(`已儲存於本機，但雲端同步失敗：${lastSyncErrorMessage}`, 'error');
+        }
+      } else {
+        showToast(`已更新「${targetName}」狀態為「${newStatus}」（本機儲存）`);
+      }
+    }
+
+    function openEditModal(id) {
+      const m = members.find(item => item.id === id);
+      if (!m) return;
+
+      document.getElementById('field-id').value = m.id;
+      document.getElementById('field-seat').value = m.seat;
+      document.getElementById('field-name').value = m.name;
+      document.getElementById('field-status').value = m.status || '尚未聯繫';
+      document.getElementById('field-phone').value = m.phone || '';
+      document.getElementById('field-line').value = m.line || '';
+      document.getElementById('field-email').value = m.email || '';
+      document.getElementById('field-job').value = m.job || '';
+      document.getElementById('field-address').value = m.address || '';
+      document.getElementById('field-notes').value = m.notes || '';
+
+      document.getElementById('modal-seat-badge').textContent = `${formatSeat(m.seat)} 號`;
+      document.getElementById('modal-title').textContent = `編輯「${m.name}」聯絡資料`;
+      document.getElementById('btn-delete-member').classList.remove('hidden');
+
+      const modal = document.getElementById('edit-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      lucide.createIcons();
+    }
+
+    function openAddModal() {
+      const maxSeat = members.reduce((max, m) => Math.max(max, m.seat), 50);
+      document.getElementById('field-id').value = '';
+      document.getElementById('field-seat').value = maxSeat + 1;
+      document.getElementById('field-name').value = '';
+      document.getElementById('field-status').value = '已聯繫';
+      document.getElementById('field-phone').value = '';
+      document.getElementById('field-line').value = '';
+      document.getElementById('field-email').value = '';
+      document.getElementById('field-job').value = '';
+      document.getElementById('field-address').value = '';
+      document.getElementById('field-notes').value = '';
+
+      document.getElementById('modal-seat-badge').textContent = '新增成員';
+      document.getElementById('modal-title').textContent = '新增同學或師長資料';
+      document.getElementById('btn-delete-member').classList.add('hidden');
+
+      const modal = document.getElementById('edit-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      lucide.createIcons();
+    }
+
+    function closeEditModal() {
+      const modal = document.getElementById('edit-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    async function saveMemberForm(event) {
+      event.preventDefault();
+      const existingId = document.getElementById('field-id').value;
+      const seat = parseInt(document.getElementById('field-seat').value, 10) || 0;
+      const name = document.getElementById('field-name').value.trim();
+      const status = document.getElementById('field-status').value;
+      const phone = document.getElementById('field-phone').value.trim();
+      const line = document.getElementById('field-line').value.trim();
+      const email = document.getElementById('field-email').value.trim();
+      const job = document.getElementById('field-job').value.trim();
+      const address = document.getElementById('field-address').value.trim();
+      const notes = document.getElementById('field-notes').value.trim();
+
+      if (!name) {
+        showToast('請輸入姓名！', 'error');
+        return;
+      }
+
+      const now = Date.now();
+      const gender = (seat >= 1 && seat <= 25) ? '男' : (seat >= 26 && seat <= 50) ? '女' : '師長/其他';
+      const docId = existingId || `member_${now}`;
+
+      const payload = {
+        seat,
+        name,
+        gender,
+        status,
+        phone,
+        line,
+        email,
+        job,
+        address,
+        notes,
+        updatedAt: now
+      };
+
+      // 先更新本機狀態與介面，提供零延遲體驗
+      if (existingId) {
+        const idx = members.findIndex(m => m.id === existingId);
+        if (idx !== -1) {
+          members[idx] = { id: existingId, ...payload };
+        }
+      } else {
+        members.push({ id: docId, ...payload });
+      }
+      saveMembersToLocalStorage();
+      closeEditModal();
+      renderMembers();
+
+      // 寫入 Firestore 雲端資料庫
+      if (db) {
+        setSyncStatus('syncing', '🟡 寫入同步中...');
+        try {
+          const docRef = doc(db, COLLECTION_NAME, docId);
+          await setDoc(docRef, payload, { merge: true });
+          setSyncStatus('connected');
+          showToast(existingId ? `已雲端同步「${name}」的聯絡資料！` : `已新增「${name}」並同步至雲端！`);
+        } catch (err) {
+          console.error('Firestore 儲存失敗:', err);
+          lastSyncErrorMessage = err.message || '寫入權限異常';
+          setSyncStatus('error');
+          showToast(`已儲存至本機，但雲端同步失敗：${lastSyncErrorMessage}`, 'error');
+        }
+      } else {
+        showToast(`已儲存「${name}」的聯絡資料（本機模式）`);
+      }
+    }
+
+    function requestDeleteMember() {
+      const id = document.getElementById('field-id').value;
+      const m = members.find(item => item.id === id);
+      if (!m) return;
+
+      openConfirmModal(
+        '刪除成員資料',
+        `確定要將「${formatSeat(m.seat)}號 ${m.name}」從通訊錄中移除嗎？此變更將同步至雲端。`,
+        async () => {
+          members = members.filter(item => item.id !== id);
+          saveMembersToLocalStorage();
+          closeEditModal();
+          renderMembers();
+
+          if (db) {
+            setSyncStatus('syncing', '🟡 正在從雲端移除...');
+            try {
+              await deleteDoc(doc(db, COLLECTION_NAME, id));
+              setSyncStatus('connected');
+              showToast(`已從雲端移除「${m.name}」的資料`);
+            } catch (err) {
+              console.error('Firestore 刪除失敗:', err);
+              lastSyncErrorMessage = err.message || '刪除權限異常';
+              setSyncStatus('error');
+              showToast(`已從本機移除，但雲端同步失敗：${lastSyncErrorMessage}`, 'error');
+            }
+          } else {
+            showToast(`已移除「${m.name}」的資料`);
+          }
+        }
+      );
+    }
+
+    // ==========================================
+    // 8. 匯出 CSV / JSON、匯入批次寫入與群組摘要複製
+    // ==========================================
+    function openDataToolsModal() {
+      const modal = document.getElementById('datatools-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      lucide.createIcons();
+    }
+
+    function closeDataToolsModal() {
+      const modal = document.getElementById('datatools-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function exportCSV() {
+      const sorted = [...members].sort((a, b) => a.seat - b.seat);
+      const headers = ['座號', '姓名', '聯絡狀態', '聯絡電話/手機', 'LINE ID', '電子信箱', '現居縣市/地址', '職業/服務單位', '備註/近況'];
+      const rows = sorted.map(m => [
+        m.seat,
+        m.name,
+        m.status,
+        m.phone || '',
+        m.line || '',
+        m.email || '',
+        m.address || '',
+        m.job || '',
+        m.notes || ''
+      ]);
+
+      const csvContent = '\uFEFF' + [
+        headers.join(','),
+        ...rows.map(row => row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(','))
+      ].join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      const today = new Date().toISOString().slice(0, 10);
+      link.href = url;
+      link.download = `大林國中三年七班(85年畢)_同學通訊錄_${today}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      showToast('已下載 Excel 相容 CSV 檔案！');
+    }
+
+    function exportJSON() {
+      const sorted = [...members].sort((a, b) => a.seat - b.seat);
+      const dataStr = JSON.stringify(sorted, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      const today = new Date().toISOString().slice(0, 10);
+      link.href = url;
+      link.download = `大林國中3年7班通訊錄備份_${today}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      showToast('已下載完整 JSON 備份檔！');
+    }
+
+    function importJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (!Array.isArray(imported) || imported.length === 0) {
+            throw new Error('格式不符');
+          }
+          const valid = imported.every(item => typeof item.name === 'string' && typeof item.seat === 'number');
+          if (!valid) {
+            throw new Error('缺少座號或姓名欄位');
+          }
+
+          const normalized = imported.map((item, index) => {
+            const seatPadded = item.seat < 10 ? `0${item.seat}` : `${item.seat}`;
+            const defaultId = (item.seat >= 1 && item.seat <= 50) ? `seat_${seatPadded}` : `member_${item.seat}_${index}`;
+            return {
+              id: item.id || defaultId,
+              seat: item.seat,
+              name: item.name,
+              gender: item.gender || (item.seat >= 1 && item.seat <= 25 ? '男' : item.seat >= 26 && item.seat <= 50 ? '女' : '師長/其他'),
+              phone: item.phone || '',
+              line: item.line || '',
+              email: item.email || '',
+              address: item.address || '',
+              job: item.job || '',
+              status: STATUS_STYLES[item.status] ? item.status : '尚未聯繫',
+              notes: item.notes || '',
+              updatedAt: item.updatedAt || Date.now()
+            };
+          });
+
+          members = normalized;
+          saveMembersToLocalStorage();
+          renderMembers();
+          closeDataToolsModal();
+
+          if (db) {
+            setSyncStatus('syncing', '🟡 正在批次寫入匯入資料至雲端...');
+            const batch = writeBatch(db);
+            const colRef = collection(db, COLLECTION_NAME);
+
+            normalized.forEach(m => {
+              const { id, ...docData } = m;
+              batch.set(doc(colRef, id), docData, { merge: true });
+            });
+
+            await batch.commit();
+            setSyncStatus('connected');
+            showToast(`成功匯入 ${normalized.length} 筆資料並同步至 Firestore 雲端！`);
+          } else {
+            showToast(`成功匯入 ${normalized.length} 筆通訊錄資料（本機模式）！`);
+          }
+        } catch (err) {
+          console.error('匯入 JSON 發生錯誤:', err);
+          showToast('匯入失敗：檔案格式不正確或雲端寫入權限受限。', 'error');
+        }
+        event.target.value = '';
+      };
+      reader.readAsText(file);
+    }
+
+    function requestResetDefault() {
+      openConfirmModal(
+        '重設為初始 50 人名單',
+        '確定要清除所有已填寫的聯絡資料，將本機與 Firestore 雲端還原為初始的 50 位同學空白點名表嗎？此動作無法復原。',
+        async () => {
+          const initialList = buildInitialMembers();
+          members = initialList;
+          saveMembersToLocalStorage();
+          renderMembers();
+          closeDataToolsModal();
+
+          if (db) {
+            setSyncStatus('syncing', '🟡 正在重設雲端名單...');
+            try {
+              const colRef = collection(db, COLLECTION_NAME);
+              const existingSnap = await getDocs(colRef);
+              const batch = writeBatch(db);
+
+              // 刪除不在初始 50 人名單中的額外文件
+              const validIds = new Set(initialList.map(i => i.id));
+              existingSnap.forEach(docSnap => {
+                if (!validIds.has(docSnap.id)) {
+                  batch.delete(docSnap.ref);
+                }
+              });
+
+              // 覆寫初始 50 人資料
+              initialList.forEach(item => {
+                const { id, ...docData } = item;
+                batch.set(doc(colRef, id), docData);
+              });
+
+              await batch.commit();
+              setSyncStatus('connected');
+              showToast('已將本機與 Firestore 雲端還原為初始 50 人名單');
+            } catch (err) {
+              console.error('Firestore 重設失敗:', err);
+              lastSyncErrorMessage = err.message || '重設權限異常';
+              setSyncStatus('error');
+              showToast(`本機已還原，但雲端重設失敗：${lastSyncErrorMessage}`, 'error');
+            }
+          } else {
+            showToast('已還原為初始 50 人名單');
+          }
+        }
+      );
+    }
+
+    function copyLineSummary() {
+      const sorted = [...members].sort((a, b) => a.seat - b.seat);
+      const attending = sorted.filter(m => m.status === '確定出席');
+      const contacted = sorted.filter(m => m.status === '已聯繫');
+      const uncontacted = sorted.filter(m => m.status === '尚未聯繫' || m.status === '失聯中');
+
+      const lines = [
+        `🎓 【大林國中三年七班 (85年畢) 聯絡進度彙整】`,
+        `📊 目前統計：共 ${sorted.length} 位｜確定出席 ${attending.length} 位｜已聯繫 ${contacted.length} 位｜待聯繫 ${uncontacted.length} 位`,
+        ``,
+        `✅ 確定出席 (${attending.length}位)：`,
+        attending.length ? attending.map(m => `${formatSeat(m.seat)}${m.name}`).join('、') : '（尚無）',
+        ``,
+        `🔵 已聯繫洽談中 (${contacted.length}位)：`,
+        contacted.length ? contacted.map(m => `${formatSeat(m.seat)}${m.name}`).join('、') : '（尚無）',
+        ``,
+        `🔍 協尋/尚未聯繫 (${uncontacted.length}位)：`,
+        uncontacted.length ? uncontacted.map(m => `${formatSeat(m.seat)}${m.name}`).join('、') : '（全員皆已聯繫！）',
+        ``,
+        `💡 有認識以上待聯繫同學的朋友，歡迎幫忙牽線回報喔！`
+      ];
+
+      copyText(lines.join('\n'), 'LINE 群組聯絡進度摘要');
+    }
+
+    function copyText(text, label = '內容') {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        showToast(`已複製${label}到剪貼簿！`);
+      } catch (err) {
+        showToast('複製失敗，請手動選取複製', 'error');
+      }
+      document.body.removeChild(textarea);
+    }
+
+    // ==========================================
+    // 9. 自訂確認框與 Toast 提示元件
+    // ==========================================
+    function openConfirmModal(title, desc, onConfirm) {
+      document.getElementById('confirm-title').textContent = title;
+      document.getElementById('confirm-desc').textContent = desc;
+      confirmCallback = onConfirm;
+      const modal = document.getElementById('confirm-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      lucide.createIcons();
+    }
+
+    function closeConfirmModal() {
+      const modal = document.getElementById('confirm-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      confirmCallback = null;
+    }
+
+    document.getElementById('confirm-yes-btn').addEventListener('click', () => {
+      if (typeof confirmCallback === 'function') {
+        confirmCallback();
+      }
+      closeConfirmModal();
+    });
+
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      const bgClass = type === 'error' ? 'bg-red-700 text-white' : 'bg-forest-900 text-cream-50 border border-amber-400/30';
+      const iconName = type === 'error' ? 'alert-circle' : 'check-circle-2';
+      const iconColor = type === 'error' ? 'text-red-200' : 'text-amber-300';
+
+      toast.className = `pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-xl text-sm font-medium transition-all duration-300 translate-y-2 opacity-0 ${bgClass}`;
+      toast.innerHTML = `
+        <i data-lucide="${iconName}" class="w-4 h-4 ${iconColor} shrink-0"></i>
+        <span>${escapeHTML(message)}</span>
+      `;
+      container.appendChild(toast);
+      lucide.createIcons();
+
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      });
+
+      setTimeout(() => {
+        toast.classList.add('translate-y-2', 'opacity-0');
+        setTimeout(() => toast.remove(), 300);
+      }, 3200);
+    }
+
+    // 點擊 Modal 背景關閉
+    ['edit-modal', 'datatools-modal', 'confirm-modal'].forEach(modalId => {
+      document.getElementById(modalId).addEventListener('click', (e) => {
+        if (e.target.id === modalId) {
+          document.getElementById(modalId).classList.add('hidden');
+          document.getElementById(modalId).classList.remove('flex');
+        }
+      });
+    });
+
+    // 註冊全域函式供 HTML 內嵌事件呼叫
+    window.openAddModal = openAddModal;
+    window.openEditModal = openEditModal;
+    window.closeEditModal = closeEditModal;
+    window.saveMemberForm = saveMemberForm;
+    window.requestDeleteMember = requestDeleteMember;
+    window.quickChangeStatus = quickChangeStatus;
+    window.copyLineSummary = copyLineSummary;
+    window.copyText = copyText;
+    window.openDataToolsModal = openDataToolsModal;
+    window.closeDataToolsModal = closeDataToolsModal;
+    window.exportCSV = exportCSV;
+    window.exportJSON = exportJSON;
+    window.importJSON = importJSON;
+    window.requestResetDefault = requestResetDefault;
+    window.quickFilter = quickFilter;
+    window.handleSearchAndFilter = handleSearchAndFilter;
+    window.clearSearch = clearSearch;
+    window.setViewMode = setViewMode;
+    window.setGroupFilter = setGroupFilter;
+    window.setStatusFilter = setStatusFilter;
+    window.resetAllFilters = resetAllFilters;
+    window.closeConfirmModal = closeConfirmModal;
+    window.showSyncDetails = showSyncDetails;
+
+    // 啟動 Firestore 雲端即時同步
+    window.addEventListener('DOMContentLoaded', () => {
+      initFirestoreSync();
+    });
+  </script>
+</body>
+</html>
