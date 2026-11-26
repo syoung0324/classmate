@@ -4,9 +4,13 @@ import {
   collection,
   doc,
   setDoc,
+  addDoc,
   updateDoc,
   deleteDoc,
-  onSnapshot
+  onSnapshot,
+  query,
+  orderBy,
+  limit
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
 // ==========================================
@@ -24,7 +28,9 @@ const firebaseConfig = {
 };
 
 const COLLECTION_NAME = 'dalin_307_contacts';
+const LOG_COLLECTION_NAME = 'dalin_307_logs';
 const STORAGE_KEY = 'dalin_jhs_307_alumni_cache_v2';
+const LOG_STORAGE_KEY = 'dalin_jhs_307_logs_cache_v1';
 
 let db = null;
 let isCloudConnected = false;
@@ -47,7 +53,15 @@ const STATUS_STYLES = {
   '失聯中':   { badge: 'bg-rose-50 text-rose-700 border-rose-200', dot: 'bg-rose-500', order: 5 }
 };
 
-// LINE 品牌圖示向量 SVG（對應綠底白框黑字圓角方形 Logo）
+// 更新紀錄 Log 類型樣式
+const LOG_TYPE_META = {
+  'CREATE': { emoji: '✨', label: '新增成員', badge: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
+  'UPDATE': { emoji: '✏️', label: '編輯資料', badge: 'bg-amber-100 text-amber-800 border-amber-200' },
+  'STATUS': { emoji: '🔄', label: '狀態變更', badge: 'bg-sky-100 text-sky-800 border-sky-200' },
+  'DELETE': { emoji: '🗑️', label: '刪除資料', badge: 'bg-rose-100 text-rose-800 border-rose-200' }
+};
+
+// LINE 品牌圖示向量 SVG（綠底白框黑字圓角方形 Logo）
 function getLineBrandIconSVG(uniqueKey = 'card') {
   const gradId = `lineGreenGrad_${uniqueKey}`;
   return `
@@ -66,11 +80,13 @@ function getLineBrandIconSVG(uniqueKey = 'card') {
   `;
 }
 
-// 應用程式狀態（完全由 Firestore 動態載入）
+// 應用程式狀態
 let members = [];
+let activityLogs = [];
 let currentView = 'card'; // 'card' | 'table'
 let groupFilter = 'ALL';  // 'ALL' | 'BOYS' | 'GIRLS' | 'OTHER'
 let statusFilter = 'ALL'; // 'ALL' | 'HAS_CONTACT' | 'CONTACTED_ANY' | status string
+let logFilter = 'ALL';    // 'ALL' | 'CREATE' | 'UPDATE' | 'STATUS' | 'DELETE'
 let confirmCallback = null;
 
 // ==========================================
@@ -122,6 +138,13 @@ function loadLocalCache() {
         members = parsed;
       }
     }
+    const rawLogs = localStorage.getItem(LOG_STORAGE_KEY);
+    if (rawLogs) {
+      const parsedLogs = JSON.parse(rawLogs);
+      if (Array.isArray(parsedLogs)) {
+        activityLogs = parsedLogs;
+      }
+    }
   } catch (e) {
     console.error('讀取本機快取失敗:', e);
   }
@@ -135,15 +158,25 @@ function saveMembersToLocalCache() {
   }
 }
 
+function saveLogsToLocalCache() {
+  try {
+    localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(activityLogs.slice(0, 200)));
+  } catch (e) {
+    console.error('寫入 Log 快取失敗:', e);
+  }
+}
+
 function clearLocalCache() {
   localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(LOG_STORAGE_KEY);
   showToast('已清除本機快取，正在重新同步雲端資料...');
   location.reload();
 }
 
-// 啟動 Firestore 即時監聽 (onSnapshot)
+// 啟動 Firestore 即時監聽 (通訊錄與更新紀錄 Log)
 function initFirestoreSync() {
   loadLocalCache();
+  updateLogBadge();
   renderMembers();
 
   if (!db) {
@@ -151,8 +184,8 @@ function initFirestoreSync() {
     return;
   }
 
+  // 1. 監聽通訊錄集合
   const colRef = collection(db, COLLECTION_NAME);
-
   onSnapshot(
     colRef,
     (snapshot) => {
@@ -190,10 +223,213 @@ function initFirestoreSync() {
       showToast('Firestore 雲端連線異常（請檢查權限規則），目前顯示本機快取資料。', 'error');
     }
   );
+
+  // 2. 監聽更新紀錄 Log 集合（最新 150 筆）
+  const logQuery = query(
+    collection(db, LOG_COLLECTION_NAME),
+    orderBy('timestamp', 'desc'),
+    limit(150)
+  );
+  onSnapshot(
+    logQuery,
+    (snapshot) => {
+      const cloudLogs = [];
+      snapshot.forEach((docSnap) => {
+        cloudLogs.push({ id: docSnap.id, ...docSnap.data() });
+      });
+      activityLogs = cloudLogs;
+      saveLogsToLocalCache();
+      updateLogBadge();
+      const logModal = document.getElementById('log-modal');
+      if (logModal && !logModal.classList.contains('hidden')) {
+        renderLogs();
+      }
+    },
+    (error) => {
+      console.warn('Firestore Log 監聽提示:', error);
+    }
+  );
 }
 
 // ==========================================
-// 3. 統計數據更新與渲染
+// 3. 寫入與渲染更新紀錄 Log
+// ==========================================
+async function recordActivityLog(actionType, seat, name, summary, details = []) {
+  const now = Date.now();
+  const roleLabel = (seat >= 1 && seat <= 50) ? `${formatSeat(seat)}號` : `師長/編號${seat}`;
+  const logEntry = {
+    actionType, // 'CREATE' | 'UPDATE' | 'STATUS' | 'DELETE'
+    seat: Number(seat) || 0,
+    roleLabel,
+    name: name || '未命名',
+    summary,
+    details,
+    timestamp: now
+  };
+
+  // 先更新本機狀態與快取
+  activityLogs.unshift({ id: `local_${now}`, ...logEntry });
+  saveLogsToLocalCache();
+  updateLogBadge();
+
+  if (db) {
+    try {
+      await addDoc(collection(db, LOG_COLLECTION_NAME), logEntry);
+    } catch (err) {
+      console.warn('寫入雲端 Log 失敗（已保留於本機快取）:', err);
+    }
+  }
+}
+
+function updateLogBadge() {
+  const badge = document.getElementById('log-count-badge');
+  if (!badge) return;
+  if (activityLogs.length > 0) {
+    badge.textContent = activityLogs.length > 99 ? '99+' : activityLogs.length;
+    badge.classList.remove('hidden');
+  } else {
+    badge.classList.add('hidden');
+  }
+}
+
+function formatDateTime(ts) {
+  if (!ts) return '未知時間';
+  const d = new Date(ts);
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  const hh = String(d.getHours()).padStart(2, '0');
+  const min = String(d.getMinutes()).padStart(2, '0');
+  const ss = String(d.getSeconds()).padStart(2, '0');
+  return `${yyyy}/${mm}/${dd} ${hh}:${min}:${ss}`;
+}
+
+function openLogModal() {
+  const modal = document.getElementById('log-modal');
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+  renderLogs();
+  lucide.createIcons();
+}
+
+function closeLogModal() {
+  const modal = document.getElementById('log-modal');
+  modal.classList.add('hidden');
+  modal.classList.remove('flex');
+}
+
+function setLogFilter(type) {
+  logFilter = type;
+  document.querySelectorAll('.log-filter-pill').forEach(btn => {
+    if (btn.dataset.logFilter === type) {
+      btn.className = 'log-filter-pill px-2.5 py-1 rounded-lg text-xs font-medium bg-forest-800 text-white transition shrink-0';
+    } else {
+      btn.className = 'log-filter-pill px-2.5 py-1 rounded-lg text-xs font-medium bg-cream-200/70 text-gray-700 hover:bg-cream-200 transition shrink-0';
+    }
+  });
+  renderLogs();
+}
+
+function renderLogs() {
+  const container = document.getElementById('log-list-container');
+  if (!container) return;
+
+  const filtered = activityLogs.filter(log => {
+    if (logFilter === 'ALL') return true;
+    return log.actionType === logFilter;
+  });
+
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div class="bg-white rounded-2xl p-10 text-center border border-cream-200">
+        <div class="text-4xl mb-3">📭</div>
+        <h3 class="text-base font-bold text-forest-900">目前尚無符合的更新紀錄</h3>
+        <p class="text-xs text-gray-500 mt-1">當有任何同學或師長的資料被新增、編輯或變更狀態時，系統會自動記錄在此。</p>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = filtered.map(log => {
+    const meta = LOG_TYPE_META[log.actionType] || LOG_TYPE_META['UPDATE'];
+    const detailsList = Array.isArray(log.details) ? log.details : [];
+    return `
+      <div class="bg-white rounded-xl p-4 border border-cream-300/80 shadow-sm hover:border-amber-400/70 transition">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${meta.badge}">
+              <span>${meta.emoji}</span>
+              <span>${meta.label}</span>
+            </span>
+            <span class="text-xs font-bold px-2 py-0.5 rounded-md bg-forest-800/10 text-forest-900">
+              ${escapeHTML(log.roleLabel || '')}
+            </span>
+            <span class="font-serif font-bold text-base text-forest-900">
+              ${escapeHTML(log.name || '')}
+            </span>
+          </div>
+          <span class="text-xs text-gray-400 font-mono">
+            🕒 ${formatDateTime(log.timestamp)}
+          </span>
+        </div>
+
+        <p class="text-sm text-gray-700 mt-2 font-medium">
+          ${escapeHTML(log.summary || '')}
+        </p>
+
+        ${detailsList.length > 0 ? `
+          <ul class="mt-2.5 pt-2 border-t border-cream-200 space-y-1 text-xs text-gray-600">
+            ${detailsList.map(item => `
+              <li class="flex items-start gap-1.5">
+                <span class="text-amber-600 font-bold">•</span>
+                <span>${escapeHTML(item)}</span>
+              </li>
+            `).join('')}
+          </ul>
+        ` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+function exportLogTxt() {
+  if (activityLogs.length === 0) {
+    showToast('目前尚無更新紀錄可匯出！', 'error');
+    return;
+  }
+  const lines = [
+    '====================================================',
+    '大林國中三年七班 (85年畢) 同學與師長通訊錄 - 更新紀錄 Log',
+    `匯出時間：${formatDateTime(Date.now())}（共 ${activityLogs.length} 筆紀錄）`,
+    '====================================================',
+    ''
+  ];
+
+  activityLogs.forEach((log, index) => {
+    const meta = LOG_TYPE_META[log.actionType] || LOG_TYPE_META['UPDATE'];
+    lines.push(`[${index + 1}] ${formatDateTime(log.timestamp)} | ${meta.emoji} ${meta.label} | ${log.roleLabel || ''} ${log.name || ''}`);
+    lines.push(`    摘要：${log.summary || ''}`);
+    if (Array.isArray(log.details) && log.details.length > 0) {
+      log.details.forEach(d => lines.push(`      - ${d}`));
+    }
+    lines.push('');
+  });
+
+  const blob = new Blob(['\uFEFF' + lines.join('\n')], { type: 'text/plain;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  const today = new Date().toISOString().slice(0, 10);
+  link.href = url;
+  link.download = `大林國中三年七班_通訊錄更新紀錄Log_${today}.txt`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+  showToast('已下載更新紀錄 Log 文字檔！');
+}
+
+// ==========================================
+// 4. 統計數據更新與渲染
 // ==========================================
 function updateStatistics() {
   const total = members.length;
@@ -240,7 +476,7 @@ function updateStatistics() {
 }
 
 // ==========================================
-// 4. 篩選、排序與檢視切換
+// 5. 篩選、排序與檢視切換
 // ==========================================
 function getFilteredAndSortedMembers() {
   const keyword = document.getElementById('search-input').value.trim().toLowerCase();
@@ -379,7 +615,7 @@ function setViewMode(mode) {
 }
 
 // ==========================================
-// 5. 畫面渲染 (卡片 & 表格)
+// 6. 畫面渲染 (卡片 & 表格)
 // ==========================================
 function escapeHTML(str) {
   if (!str) return '';
@@ -631,13 +867,16 @@ function renderTable(list) {
 }
 
 // ==========================================
-// 6. 編輯、新增、快速狀態變更與刪除 (同步寫入 Firestore)
+// 7. 編輯、新增、快速狀態變更與刪除 (同步寫入 Firestore 並記錄 Log)
 // ==========================================
 async function quickChangeStatus(id, newStatus) {
   const idx = members.findIndex(m => m.id === id);
   if (idx === -1) return;
 
-  const targetName = members[idx].name;
+  const target = members[idx];
+  const oldStatus = target.status || '尚未聯繫';
+  if (oldStatus === newStatus) return;
+
   const now = Date.now();
   members[idx].status = newStatus;
   members[idx].updatedAt = now;
@@ -652,8 +891,15 @@ async function quickChangeStatus(id, newStatus) {
         status: newStatus,
         updatedAt: now
       });
+      await recordActivityLog(
+        'STATUS',
+        target.seat,
+        target.name,
+        `聯絡狀態由「${oldStatus}」更新為「${newStatus}」`,
+        [`狀態：${oldStatus} → ${newStatus}`]
+      );
       setSyncStatus('connected');
-      showToast(`已雲端同步「${targetName}」狀態為「${newStatus}」`);
+      showToast(`已雲端同步「${target.name}」狀態為「${newStatus}」`);
     } catch (err) {
       console.error('Firestore 快速更新狀態失敗:', err);
       lastSyncErrorMessage = err.message || '寫入失敗';
@@ -717,6 +963,29 @@ function closeEditModal() {
   modal.classList.remove('flex');
 }
 
+function computeMemberDiff(oldMember, newPayload) {
+  const fieldLabels = {
+    seat: '座號',
+    name: '姓名',
+    status: '聯絡狀態',
+    phone: '電話',
+    line: 'LINE ID',
+    email: 'Email',
+    job: '職業/單位',
+    address: '現居地',
+    notes: '備註/近況'
+  };
+  const changes = [];
+  Object.keys(fieldLabels).forEach(key => {
+    const prevVal = String(oldMember[key] ?? '').trim();
+    const nextVal = String(newPayload[key] ?? '').trim();
+    if (prevVal !== nextVal) {
+      changes.push(`${fieldLabels[key]}：${prevVal || '（空）'} → ${nextVal || '（空）'}`);
+    }
+  });
+  return changes;
+}
+
 async function saveMemberForm(event) {
   event.preventDefault();
   const existingId = document.getElementById('field-id').value;
@@ -754,14 +1023,30 @@ async function saveMemberForm(event) {
     updatedAt: now
   };
 
+  let logType = 'CREATE';
+  let logSummary = `新增成員資料（狀態：${status}）`;
+  let logDetails = [];
+
   if (existingId) {
     const idx = members.findIndex(m => m.id === existingId);
     if (idx !== -1) {
+      const oldMember = { ...members[idx] };
+      logDetails = computeMemberDiff(oldMember, payload);
+      logType = 'UPDATE';
+      logSummary = logDetails.length > 0
+        ? `更新了 ${logDetails.length} 項聯絡欄位資料`
+        : '儲存了聯絡資料（欄位內容無變動）';
       members[idx] = { id: existingId, ...payload };
     }
   } else {
+    if (phone) logDetails.push(`電話：${phone}`);
+    if (line) logDetails.push(`LINE ID：${line}`);
+    if (address) logDetails.push(`現居地：${address}`);
+    if (job) logDetails.push(`職業/單位：${job}`);
+    if (notes) logDetails.push(`備註：${notes}`);
     members.push({ id: docId, ...payload });
   }
+
   saveMembersToLocalCache();
   closeEditModal();
   renderMembers();
@@ -771,6 +1056,7 @@ async function saveMemberForm(event) {
     try {
       const docRef = doc(db, COLLECTION_NAME, docId);
       await setDoc(docRef, payload, { merge: true });
+      await recordActivityLog(logType, seat, name, logSummary, logDetails);
       setSyncStatus('connected');
       showToast(existingId ? `已雲端同步「${name}」的聯絡資料！` : `已新增「${name}」並同步至雲端！`);
     } catch (err) {
@@ -791,6 +1077,7 @@ function requestDeleteMember() {
     '刪除成員資料',
     `確定要將「${formatSeat(m.seat)}號 ${m.name}」從雲端通訊錄中移除嗎？此變更將同步至所有裝置。`,
     async () => {
+      const deletedSnapshot = { ...m };
       members = members.filter(item => item.id !== id);
       saveMembersToLocalCache();
       closeEditModal();
@@ -800,8 +1087,15 @@ function requestDeleteMember() {
         setSyncStatus('syncing', '🟡 正在從雲端移除...');
         try {
           await deleteDoc(doc(db, COLLECTION_NAME, id));
+          await recordActivityLog(
+            'DELETE',
+            deletedSnapshot.seat,
+            deletedSnapshot.name,
+            '從通訊錄中移除此筆成員資料',
+            deletedSnapshot.status ? [`原狀態：${deletedSnapshot.status}`] : []
+          );
           setSyncStatus('connected');
-          showToast(`已從雲端移除「${m.name}」的資料`);
+          showToast(`已從雲端移除「${deletedSnapshot.name}」的資料`);
         } catch (err) {
           console.error('Firestore 刪除失敗:', err);
           lastSyncErrorMessage = err.message || '刪除權限異常';
@@ -814,7 +1108,7 @@ function requestDeleteMember() {
 }
 
 // ==========================================
-// 7. 匯出 Excel / CSV 試算表
+// 8. 匯出 Excel / CSV 試算表
 // ==========================================
 function openDataToolsModal() {
   const modal = document.getElementById('datatools-modal');
@@ -879,7 +1173,7 @@ function copyText(text, label = '內容') {
 }
 
 // ==========================================
-// 8. 自訂確認框與 Toast 提示元件
+// 9. 自訂確認框與 Toast 提示元件
 // ==========================================
 function openConfirmModal(title, desc, onConfirm) {
   document.getElementById('confirm-title').textContent = title;
@@ -931,7 +1225,7 @@ function showToast(message, type = 'success') {
 }
 
 // 點擊 Modal 背景關閉
-['edit-modal', 'datatools-modal', 'confirm-modal'].forEach(modalId => {
+['edit-modal', 'datatools-modal', 'log-modal', 'confirm-modal'].forEach(modalId => {
   document.getElementById(modalId).addEventListener('click', (e) => {
     if (e.target.id === modalId) {
       document.getElementById(modalId).classList.add('hidden');
@@ -961,6 +1255,10 @@ window.setStatusFilter = setStatusFilter;
 window.resetAllFilters = resetAllFilters;
 window.closeConfirmModal = closeConfirmModal;
 window.showSyncDetails = showSyncDetails;
+window.openLogModal = openLogModal;
+window.closeLogModal = closeLogModal;
+window.setLogFilter = setLogFilter;
+window.exportLogTxt = exportLogTxt;
 
 // 啟動 Firestore 雲端即時同步
 window.addEventListener('DOMContentLoaded', () => {
