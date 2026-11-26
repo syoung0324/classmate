@@ -52,6 +52,7 @@ body {
 .bg-forest-800\/10 { background-color: rgba(27, 59, 47, 0.1); }
 .bg-forest-900 { background-color: var(--forest-900); }
 .bg-forest-950\/60 { background-color: rgba(10, 25, 19, 0.6); }
+.bg-forest-950\/65 { background-color: rgba(10, 25, 19, 0.65); }
 .bg-forest-950\/70 { background-color: rgba(10, 25, 19, 0.7); }
 
 .hover\:bg-forest-700:hover { background-color: var(--forest-700); }
@@ -103,6 +104,44 @@ body {
 }
 .card-shadow:hover {
   box-shadow: 0 12px 28px -4px rgba(27, 59, 47, 0.12), 0 4px 10px -2px rgba(27, 59, 47, 0.06);
+}
+
+/* 橫線筆記紙背景與空白提示樣式 */
+.notepad-paper {
+  background-color: #FFFDF9;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 31px,
+    #EFE6D5 32px
+  );
+  background-attachment: local;
+}
+
+.notepad-paper:empty::before {
+  content: attr(data-placeholder);
+  color: #9CA3AF;
+  font-style: italic;
+  pointer-events: none;
+  display: block;
+}
+
+/* 插入記事本的可愛貼圖標籤樣式 */
+.notepad-sticker-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  margin: 0 3px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+  border: 1.5px solid #F59E0B;
+  color: #78350F;
+  font-weight: 700;
+  font-size: 0.92em;
+  vertical-align: middle;
+  box-shadow: 0 2px 4px rgba(245, 158, 11, 0.15);
+  user-select: all;
 }
 
 /* 隱藏捲軸但保留滾動功能 */

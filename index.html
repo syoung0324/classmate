@@ -58,6 +58,11 @@
             <span>更新紀錄</span>
             <span id="log-count-badge" class="hidden px-1.5 py-0.5 text-[11px] font-bold rounded-full bg-amber-400 text-forest-950">0</span>
           </button>
+          <button onclick="openGatheringModal()" class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-emerald-500/25 hover:bg-emerald-500/35 text-white border border-emerald-300/40 font-medium text-sm backdrop-blur-sm shadow-sm transition active:scale-95" title="編輯與查看同學會聚餐地點、貼圖與現場圖片說明">
+            <span class="text-base leading-none" role="img" aria-label="聚餐地點資訊">🍽️</span>
+            <span>聚餐地點資訊</span>
+            <span id="gathering-status-dot" class="hidden w-2 h-2 rounded-full bg-amber-300" title="已設定聚餐資訊"></span>
+          </button>
         </div>
       </div>
     </div>
@@ -433,7 +438,6 @@
         </button>
       </div>
 
-      <!-- 篩選與操作工具列 -->
       <div class="px-6 py-3 bg-cream-50 border-b border-cream-200 flex flex-wrap items-center justify-between gap-2 shrink-0">
         <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
           <button onclick="setLogFilter('ALL')" data-log-filter="ALL" class="log-filter-pill px-2.5 py-1 rounded-lg text-xs font-medium bg-forest-800 text-white transition shrink-0">全部</button>
@@ -449,10 +453,198 @@
         </button>
       </div>
 
-      <!-- 歷程時間軸列表 -->
-      <div id="log-list-container" class="p-6 overflow-y-auto flex-1 space-y-3 bg-cream-50/40">
-        <!-- 由 app.js 動態渲染 -->
+      <div id="log-list-container" class="p-6 overflow-y-auto flex-1 space-y-3 bg-cream-50/40"></div>
+    </div>
+  </div>
+
+  <!-- 🍽️ 聚餐地點資訊・多功能記事本 Modal -->
+  <div id="gathering-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-4 bg-forest-950/65 backdrop-blur-sm">
+    <div class="bg-cream-50 rounded-2xl max-w-4xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-cream-300 overflow-hidden">
+      <!-- 頂部標題列 -->
+      <div class="bg-gradient-to-r from-forest-900 via-forest-800 to-forest-700 text-white px-5 sm:px-6 py-4 flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-amber-400/20 border border-amber-300/30 flex items-center justify-center text-2xl shadow-inner">
+            🍽️
+          </div>
+          <div>
+            <h2 class="font-serif text-lg sm:text-xl font-bold flex items-center gap-2">
+              <span>同學會聚餐地點資訊記事本</span>
+              <span class="text-xs font-sans font-normal px-2 py-0.5 rounded-full bg-emerald-500/30 border border-emerald-300/40 text-emerald-100">雲端共享</span>
+            </h2>
+            <p id="gathering-last-updated" class="text-xs text-cream-200/80 mt-0.5">可編輯餐廳資訊、插入可愛貼圖與上傳現場／菜單圖片佐證</p>
+          </div>
+        </div>
+        <button onclick="closeGatheringModal()" class="p-1.5 rounded-lg text-cream-200 hover:text-white hover:bg-white/10 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
       </div>
+
+      <!-- 捲動主內容區 -->
+      <div class="p-4 sm:p-6 overflow-y-auto flex-1 space-y-5">
+
+        <!-- 區塊一：聚餐重點資訊快填卡 -->
+        <div class="bg-white rounded-2xl p-4 sm:p-5 border border-cream-300 shadow-sm space-y-3.5">
+          <div class="flex items-center justify-between border-b border-cream-200 pb-2.5">
+            <h3 class="font-serif font-bold text-forest-900 text-sm sm:text-base flex items-center gap-2">
+              <span>📍</span>
+              <span>聚餐核心資訊卡片</span>
+            </h3>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="openGatheringMap()" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 text-xs font-medium transition">
+                <span>🗺️</span>
+                <span>開啟 Google 地圖</span>
+              </button>
+              <button type="button" onclick="copyGatheringSummary()" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-medium transition">
+                <span>📋</span>
+                <span>一鍵複製邀約</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div>
+              <label class="block text-xs font-semibold text-gray-700 mb-1">🏪 餐廳 / 聚會場地名稱</label>
+              <input type="text" id="g-venue-name" placeholder="例如：大林鎮〇〇庭園餐廳（二樓 VIP 圓桌包廂）" class="w-full px-3.5 py-2 rounded-xl bg-cream-50 border border-cream-300 focus:border-forest-700 focus:ring-2 focus:ring-forest-700/20 outline-none text-sm font-bold text-forest-900" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-700 mb-1">🗓️ 聚餐日期與報到時間</label>
+              <input type="text" id="g-datetime" placeholder="例如：2026/12/20 (日) 中午 11:30 報到、12:00 開席" class="w-full px-3.5 py-2 rounded-xl bg-cream-50 border border-cream-300 focus:border-forest-700 focus:ring-2 focus:ring-forest-700/20 outline-none text-sm" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-700 mb-1">📌 詳細地址 / 交通停車指引</label>
+              <input type="text" id="g-address" placeholder="例如：嘉義縣大林鎮〇〇路 123 號（附設免費大型停車場）" class="w-full px-3.5 py-2 rounded-xl bg-cream-50 border border-cream-300 focus:border-forest-700 focus:ring-2 focus:ring-forest-700/20 outline-none text-sm" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-700 mb-1">☎️ 餐廳電話 / 訂位大名與桌數</label>
+              <input type="text" id="g-contact" placeholder="例如：05-265-XXXX（訂位人：班長 / 預訂 3 大桌）" class="w-full px-3.5 py-2 rounded-xl bg-cream-50 border border-cream-300 focus:border-forest-700 focus:ring-2 focus:ring-forest-700/20 outline-none text-sm" />
+            </div>
+          </div>
+        </div>
+
+        <!-- 區塊二：多功能記事本（富文本工具列 + 可愛貼圖面板 + 橫線筆記紙編輯區） -->
+        <div class="bg-white rounded-2xl border border-cream-300 shadow-sm overflow-hidden">
+          <!-- 記事本頂部多功能工具列 -->
+          <div class="bg-cream-100 px-3.5 py-2.5 border-b border-cream-300 flex flex-wrap items-center justify-between gap-2">
+            <div class="flex flex-wrap items-center gap-1">
+              <span class="text-xs font-bold text-forest-900 mr-1.5 flex items-center gap-1">
+                <span>📒</span>
+                <span>多功能記事本</span>
+              </span>
+
+              <button type="button" onclick="execNoteCmd('bold')" class="note-tool-btn px-2 py-1 rounded-lg bg-white hover:bg-amber-100 border border-cream-300 text-xs font-bold text-gray-800 transition" title="粗體強調">
+                B
+              </button>
+              <button type="button" onclick="execNoteCmd('hiliteColor', '#FEF08A')" class="note-tool-btn px-2 py-1 rounded-lg bg-yellow-100 hover:bg-yellow-200 border border-yellow-300 text-xs font-semibold text-amber-900 transition" title="黃色螢光筆標記">
+                🖍️ 重點標記
+              </button>
+              <button type="button" onclick="execNoteCmd('foreColor', '#B91C1C')" class="note-tool-btn px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 border border-rose-200 text-xs font-semibold text-rose-700 transition" title="紅色提醒文字">
+                🔴 紅字
+              </button>
+              <button type="button" onclick="execNoteCmd('foreColor', '#1F2937')" class="note-tool-btn px-2 py-1 rounded-lg bg-white hover:bg-gray-100 border border-cream-300 text-xs font-medium text-gray-700 transition" title="恢復深色文字">
+                ⚫ 黑字
+              </button>
+              <button type="button" onclick="insertNoteChecklist()" class="note-tool-btn px-2 py-1 rounded-lg bg-white hover:bg-emerald-50 border border-cream-300 text-xs font-medium text-forest-800 transition" title="插入待辦核取項目">
+                ☑️ 待辦項目
+              </button>
+              <button type="button" onclick="insertNoteDivider()" class="note-tool-btn px-2 py-1 rounded-lg bg-white hover:bg-cream-200 border border-cream-300 text-xs font-medium text-gray-700 transition" title="插入分隔線">
+                ➖ 分隔線
+              </button>
+            </div>
+
+            <div class="flex items-center gap-1.5">
+              <button type="button" onclick="toggleStickerDrawer()" id="btn-toggle-stickers" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold shadow-sm transition active:scale-95">
+                <span>🧸</span>
+                <span>插入可愛貼圖</span>
+              </button>
+              <button type="button" onclick="applyGatheringTemplate()" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white hover:bg-cream-200 border border-cream-300 text-gray-700 text-xs font-medium transition" title="套用同學會活動流程與費用說明範本">
+                <span>✨</span>
+                <span>套用範本</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 可收合的可愛貼圖與表情面板 -->
+          <div id="sticker-drawer" class="hidden bg-amber-50/80 border-b border-amber-200/80 p-3.5 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-amber-900 flex items-center gap-1.5">
+                <span>🎨</span>
+                <span>點擊下方可愛貼圖或表情，即可直接貼入記事本中：</span>
+              </span>
+              <button type="button" onclick="toggleStickerDrawer()" class="text-xs text-gray-500 hover:text-gray-800 px-2 py-0.5 rounded hover:bg-amber-100">
+                收起 ▴
+              </button>
+            </div>
+
+            <!-- 精選向量可愛貼圖組 -->
+            <div id="cute-svg-stickers-grid" class="grid grid-cols-4 sm:grid-cols-8 gap-2"></div>
+
+            <!-- 常用可愛 Emoji 快捷列 -->
+            <div class="pt-2 border-t border-amber-200/60 flex flex-wrap items-center gap-1.5">
+              <span class="text-[11px] font-semibold text-amber-800 mr-1">快捷表情：</span>
+              <div id="cute-emoji-bar" class="flex flex-wrap gap-1"></div>
+            </div>
+          </div>
+
+          <!-- 橫線筆記紙樣式富文本編輯區 -->
+          <div
+            id="gathering-notepad-editor"
+            contenteditable="true"
+            data-placeholder="在此自由撰寫聚餐菜單特色、活動流程、餐費分攤方式、伴手禮或交通接駁細節...（可隨時點擊上方按鈕插入可愛貼圖！）"
+            class="notepad-paper min-h-[210px] max-h-[340px] overflow-y-auto p-4 sm:p-5 text-sm sm:text-base text-gray-800 leading-8 outline-none focus:bg-amber-50/15"
+          ></div>
+        </div>
+
+        <!-- 區塊三：上傳圖片佐證說明區 -->
+        <div class="bg-white rounded-2xl p-4 sm:p-5 border border-cream-300 shadow-sm space-y-3.5">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-cream-200 pb-2.5">
+            <div>
+              <h3 class="font-serif font-bold text-forest-900 text-sm sm:text-base flex items-center gap-2">
+                <span>📸</span>
+                <span>圖片佐證與現場／菜單說明</span>
+                <span id="gathering-photo-count" class="text-xs font-sans font-semibold px-2 py-0.5 rounded-full bg-cream-200 text-forest-900">0 張</span>
+              </h3>
+              <p class="text-xs text-gray-500 mt-0.5">可上傳餐廳外觀、包廂環境、合菜菜單或停車場路線圖（自動壓縮優化，建議最多 6 張）</p>
+            </div>
+
+            <label class="cursor-pointer inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-forest-800 hover:bg-forest-700 text-white text-xs sm:text-sm font-medium shadow-sm transition active:scale-95">
+              <span>🖼️</span>
+              <span>上傳圖片佐證</span>
+              <input type="file" id="gathering-photo-input" accept="image/*" multiple onchange="handleGatheringPhotoUpload(event)" class="hidden" />
+            </label>
+          </div>
+
+          <!-- 圖片卡片網格 -->
+          <div id="gathering-photos-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5"></div>
+        </div>
+
+      </div>
+
+      <!-- 底部操作按鈕列 -->
+      <div class="px-5 sm:px-6 py-3.5 bg-cream-100 border-t border-cream-300 flex items-center justify-between gap-3 shrink-0">
+        <span class="text-xs text-gray-500 hidden sm:inline">💡 提示：點擊「儲存並雲端同步」後，全班同學皆可即時瀏覽最新聚餐資訊</span>
+        <div class="flex items-center gap-2.5 ml-auto">
+          <button type="button" onclick="closeGatheringModal()" class="px-4 py-2 rounded-xl bg-white hover:bg-cream-200 border border-cream-300 text-gray-700 text-sm font-medium transition">
+            關閉視窗
+          </button>
+          <button type="button" onclick="saveGatheringInfo()" class="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-forest-800 hover:bg-forest-700 text-white text-sm font-semibold shadow-md transition active:scale-95">
+            <span>💾</span>
+            <span>儲存並雲端同步</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 圖片放大檢視 Lightbox Modal -->
+  <div id="photo-lightbox-modal" onclick="closePhotoLightbox()" class="fixed inset-0 z-[65] hidden items-center justify-center p-4 bg-black/85 backdrop-blur-sm">
+    <div onclick="event.stopPropagation()" class="max-w-4xl w-full flex flex-col items-center space-y-3">
+      <div class="w-full flex justify-end">
+        <button onclick="closePhotoLightbox()" class="px-3 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-white text-xs font-medium transition">
+          ✕ 關閉預覽
+        </button>
+      </div>
+      <img id="lightbox-img" src="" alt="聚餐圖片放大預覽" class="max-h-[75vh] w-auto rounded-2xl shadow-2xl border border-white/20 object-contain" />
+      <p id="lightbox-caption" class="text-sm text-cream-100 bg-black/50 px-4 py-2 rounded-xl text-center max-w-2xl"></p>
     </div>
   </div>
 

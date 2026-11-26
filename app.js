@@ -29,8 +29,12 @@ const firebaseConfig = {
 
 const COLLECTION_NAME = 'dalin_307_contacts';
 const LOG_COLLECTION_NAME = 'dalin_307_logs';
+const SETTINGS_COLLECTION_NAME = 'dalin_307_settings';
+const GATHERING_DOC_ID = 'gathering_info';
+
 const STORAGE_KEY = 'dalin_jhs_307_alumni_cache_v2';
 const LOG_STORAGE_KEY = 'dalin_jhs_307_logs_cache_v1';
+const GATHERING_STORAGE_KEY = 'dalin_jhs_307_gathering_cache_v1';
 
 let db = null;
 let isCloudConnected = false;
@@ -55,11 +59,30 @@ const STATUS_STYLES = {
 
 // 更新紀錄 Log 類型樣式
 const LOG_TYPE_META = {
-  'CREATE': { emoji: '✨', label: '新增成員', badge: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
-  'UPDATE': { emoji: '✏️', label: '編輯資料', badge: 'bg-amber-100 text-amber-800 border-amber-200' },
-  'STATUS': { emoji: '🔄', label: '狀態變更', badge: 'bg-sky-100 text-sky-800 border-sky-200' },
-  'DELETE': { emoji: '🗑️', label: '刪除資料', badge: 'bg-rose-100 text-rose-800 border-rose-200' }
+  'CREATE':    { emoji: '✨', label: '新增成員', badge: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
+  'UPDATE':    { emoji: '✏️', label: '編輯資料', badge: 'bg-amber-100 text-amber-800 border-amber-200' },
+  'STATUS':    { emoji: '🔄', label: '狀態變更', badge: 'bg-sky-100 text-sky-800 border-sky-200' },
+  'DELETE':    { emoji: '🗑️', label: '刪除資料', badge: 'bg-rose-100 text-rose-800 border-rose-200' },
+  'GATHERING': { emoji: '🍽️', label: '聚餐資訊', badge: 'bg-purple-100 text-purple-800 border-purple-200' }
 };
+
+// 可愛貼圖組合（用於聚餐記事本）
+const CUTE_STICKERS = [
+  { emoji: '🍻', label: '舉杯歡慶', bg: 'from-amber-100 to-yellow-200 border-amber-400 text-amber-900' },
+  { emoji: '🍲', label: '豐盛佳餚', bg: 'from-rose-100 to-orange-200 border-rose-400 text-rose-900' },
+  { emoji: '🎂', label: '同窗重逢', bg: 'from-pink-100 to-rose-200 border-pink-400 text-pink-900' },
+  { emoji: '📸', label: '大合照時間', bg: 'from-sky-100 to-indigo-200 border-sky-400 text-sky-900' },
+  { emoji: '🚗', label: '好停車免煩惱', bg: 'from-emerald-100 to-teal-200 border-emerald-400 text-emerald-900' },
+  { emoji: '🎁', label: '驚喜伴手禮', bg: 'from-purple-100 to-fuchsia-200 border-purple-400 text-purple-900' },
+  { emoji: '🏫', label: '大林307精神', bg: 'from-lime-100 to-emerald-200 border-emerald-500 text-forest-900' },
+  { emoji: '❤️', label: '不見不散', bg: 'from-red-100 to-pink-200 border-red-400 text-red-900' }
+];
+
+const CUTE_EMOJIS = [
+  '🍽️', '🥂', '🍱', '🍜', '🍖', '🍰', '☕', '🍵',
+  '📍', '🗺️', '⏰', '💰', '👨‍👩‍👧‍👦', '🎉', '🎊', '🌟',
+  '👍', '🥰', '😆', '🙌', '📣', '✅', '⚠️', '🌈'
+];
 
 // LINE 品牌圖示向量 SVG（綠底白框黑字圓角方形 Logo）
 function getLineBrandIconSVG(uniqueKey = 'card') {
@@ -83,10 +106,20 @@ function getLineBrandIconSVG(uniqueKey = 'card') {
 // 應用程式狀態
 let members = [];
 let activityLogs = [];
+let gatheringData = {
+  venueName: '',
+  datetime: '',
+  address: '',
+  contact: '',
+  noteHtml: '',
+  photos: [], // [{ id, dataUrl, caption }]
+  updatedAt: 0
+};
+
 let currentView = 'card'; // 'card' | 'table'
 let groupFilter = 'ALL';  // 'ALL' | 'BOYS' | 'GIRLS' | 'OTHER'
 let statusFilter = 'ALL'; // 'ALL' | 'HAS_CONTACT' | 'CONTACTED_ANY' | status string
-let logFilter = 'ALL';    // 'ALL' | 'CREATE' | 'UPDATE' | 'STATUS' | 'DELETE'
+let logFilter = 'ALL';    // 'ALL' | 'CREATE' | 'UPDATE' | 'STATUS' | 'DELETE' | 'GATHERING'
 let confirmCallback = null;
 
 // ==========================================
@@ -134,15 +167,18 @@ function loadLocalCache() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) {
-        members = parsed;
-      }
+      if (Array.isArray(parsed)) members = parsed;
     }
     const rawLogs = localStorage.getItem(LOG_STORAGE_KEY);
     if (rawLogs) {
       const parsedLogs = JSON.parse(rawLogs);
-      if (Array.isArray(parsedLogs)) {
-        activityLogs = parsedLogs;
+      if (Array.isArray(parsedLogs)) activityLogs = parsedLogs;
+    }
+    const rawGathering = localStorage.getItem(GATHERING_STORAGE_KEY);
+    if (rawGathering) {
+      const parsedG = JSON.parse(rawGathering);
+      if (parsedG && typeof parsedG === 'object') {
+        gatheringData = { ...gatheringData, ...parsedG };
       }
     }
   } catch (e) {
@@ -166,17 +202,27 @@ function saveLogsToLocalCache() {
   }
 }
 
+function saveGatheringToLocalCache() {
+  try {
+    localStorage.setItem(GATHERING_STORAGE_KEY, JSON.stringify(gatheringData));
+  } catch (e) {
+    console.warn('聚餐資訊本機快取容量提醒:', e);
+  }
+}
+
 function clearLocalCache() {
   localStorage.removeItem(STORAGE_KEY);
   localStorage.removeItem(LOG_STORAGE_KEY);
+  localStorage.removeItem(GATHERING_STORAGE_KEY);
   showToast('已清除本機快取，正在重新同步雲端資料...');
   location.reload();
 }
 
-// 啟動 Firestore 即時監聽 (通訊錄與更新紀錄 Log)
+// 啟動 Firestore 即時監聽
 function initFirestoreSync() {
   loadLocalCache();
   updateLogBadge();
+  updateGatheringIndicator();
   renderMembers();
 
   if (!db) {
@@ -224,7 +270,7 @@ function initFirestoreSync() {
     }
   );
 
-  // 2. 監聽更新紀錄 Log 集合（最新 150 筆）
+  // 2. 監聽更新紀錄 Log 集合
   const logQuery = query(
     collection(db, LOG_COLLECTION_NAME),
     orderBy('timestamp', 'desc'),
@@ -249,6 +295,35 @@ function initFirestoreSync() {
       console.warn('Firestore Log 監聽提示:', error);
     }
   );
+
+  // 3. 監聽聚餐地點資訊文件
+  const gatheringDocRef = doc(db, SETTINGS_COLLECTION_NAME, GATHERING_DOC_ID);
+  onSnapshot(
+    gatheringDocRef,
+    (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        gatheringData = {
+          venueName: data.venueName || '',
+          datetime: data.datetime || '',
+          address: data.address || '',
+          contact: data.contact || '',
+          noteHtml: data.noteHtml || '',
+          photos: Array.isArray(data.photos) ? data.photos : [],
+          updatedAt: data.updatedAt || 0
+        };
+        saveGatheringToLocalCache();
+        updateGatheringIndicator();
+        const modal = document.getElementById('gathering-modal');
+        if (modal && !modal.classList.contains('hidden')) {
+          populateGatheringModalFields();
+        }
+      }
+    },
+    (error) => {
+      console.warn('Firestore 聚餐地點資訊監聽提示:', error);
+    }
+  );
 }
 
 // ==========================================
@@ -256,9 +331,14 @@ function initFirestoreSync() {
 // ==========================================
 async function recordActivityLog(actionType, seat, name, summary, details = []) {
   const now = Date.now();
-  const roleLabel = (seat >= 1 && seat <= 50) ? `${formatSeat(seat)}號` : `師長/編號${seat}`;
+  const roleLabel = actionType === 'GATHERING'
+    ? '聚餐公告'
+    : (seat >= 1 && seat <= 50)
+      ? `${formatSeat(seat)}號`
+      : `師長/編號${seat}`;
+
   const logEntry = {
-    actionType, // 'CREATE' | 'UPDATE' | 'STATUS' | 'DELETE'
+    actionType,
     seat: Number(seat) || 0,
     roleLabel,
     name: name || '未命名',
@@ -267,7 +347,6 @@ async function recordActivityLog(actionType, seat, name, summary, details = []) 
     timestamp: now
   };
 
-  // 先更新本機狀態與快取
   activityLogs.unshift({ id: `local_${now}`, ...logEntry });
   saveLogsToLocalCache();
   updateLogBadge();
@@ -344,7 +423,7 @@ function renderLogs() {
       <div class="bg-white rounded-2xl p-10 text-center border border-cream-200">
         <div class="text-4xl mb-3">📭</div>
         <h3 class="text-base font-bold text-forest-900">目前尚無符合的更新紀錄</h3>
-        <p class="text-xs text-gray-500 mt-1">當有任何同學或師長的資料被新增、編輯或變更狀態時，系統會自動記錄在此。</p>
+        <p class="text-xs text-gray-500 mt-1">當有任何同學、師長或聚餐地點資訊被新增或修改時，系統會自動記錄在此。</p>
       </div>
     `;
     return;
@@ -429,7 +508,407 @@ function exportLogTxt() {
 }
 
 // ==========================================
-// 4. 統計數據更新與渲染
+// 4. 🍽️ 聚餐地點資訊・多功能記事本邏輯
+// ==========================================
+function updateGatheringIndicator() {
+  const dot = document.getElementById('gathering-status-dot');
+  if (!dot) return;
+  const hasContent = Boolean(
+    (gatheringData.venueName && gatheringData.venueName.trim()) ||
+    (gatheringData.datetime && gatheringData.datetime.trim()) ||
+    (gatheringData.address && gatheringData.address.trim()) ||
+    (gatheringData.noteHtml && gatheringData.noteHtml.trim()) ||
+    (gatheringData.photos && gatheringData.photos.length > 0)
+  );
+  if (hasContent) {
+    dot.classList.remove('hidden');
+  } else {
+    dot.classList.add('hidden');
+  }
+}
+
+function initStickerDrawerUI() {
+  const stickerGrid = document.getElementById('cute-svg-stickers-grid');
+  const emojiBar = document.getElementById('cute-emoji-bar');
+
+  if (stickerGrid && stickerGrid.children.length === 0) {
+    stickerGrid.innerHTML = CUTE_STICKERS.map((s, idx) => `
+      <button
+        type="button"
+        onclick="insertCuteSticker(${idx})"
+        class="flex flex-col items-center justify-center p-2 rounded-xl bg-gradient-to-br ${s.bg} border shadow-sm hover:scale-105 active:scale-95 transition"
+        title="插入「${s.label}」貼圖"
+      >
+        <span class="text-2xl leading-none mb-1">${s.emoji}</span>
+        <span class="text-[11px] font-bold tracking-tight">${s.label}</span>
+      </button>
+    `).join('');
+  }
+
+  if (emojiBar && emojiBar.children.length === 0) {
+    emojiBar.innerHTML = CUTE_EMOJIS.map(em => `
+      <button
+        type="button"
+        onclick="insertEmojiAtCursor('${em}')"
+        class="w-7 h-7 rounded-lg bg-white hover:bg-amber-200/70 border border-amber-200/80 flex items-center justify-center text-base transition active:scale-90"
+        title="插入 ${em}"
+      >
+        ${em}
+      </button>
+    `).join('');
+  }
+}
+
+function populateGatheringModalFields() {
+  document.getElementById('g-venue-name').value = gatheringData.venueName || '';
+  document.getElementById('g-datetime').value = gatheringData.datetime || '';
+  document.getElementById('g-address').value = gatheringData.address || '';
+  document.getElementById('g-contact').value = gatheringData.contact || '';
+  document.getElementById('gathering-notepad-editor').innerHTML = gatheringData.noteHtml || '';
+
+  const updatedLabel = document.getElementById('gathering-last-updated');
+  if (updatedLabel) {
+    updatedLabel.textContent = gatheringData.updatedAt
+      ? `最後雲端更新時間：${formatDateTime(gatheringData.updatedAt)}`
+      : '可編輯餐廳資訊、插入可愛貼圖與上傳現場／菜單圖片佐證';
+  }
+  renderGatheringPhotos();
+}
+
+function openGatheringModal() {
+  initStickerDrawerUI();
+  populateGatheringModalFields();
+  const modal = document.getElementById('gathering-modal');
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+  lucide.createIcons();
+}
+
+function closeGatheringModal() {
+  const modal = document.getElementById('gathering-modal');
+  modal.classList.add('hidden');
+  modal.classList.remove('flex');
+}
+
+function toggleStickerDrawer() {
+  const drawer = document.getElementById('sticker-drawer');
+  if (!drawer) return;
+  drawer.classList.toggle('hidden');
+}
+
+function execNoteCmd(command, value = null) {
+  const editor = document.getElementById('gathering-notepad-editor');
+  editor.focus();
+  document.execCommand(command, false, value);
+}
+
+function insertHtmlIntoNotepad(html) {
+  const editor = document.getElementById('gathering-notepad-editor');
+  editor.focus();
+  const sel = window.getSelection();
+  if (sel && sel.rangeCount > 0 && editor.contains(sel.anchorNode)) {
+    const range = sel.getRangeAt(0);
+    range.deleteContents();
+    const el = document.createElement('div');
+    el.innerHTML = html;
+    const frag = document.createDocumentFragment();
+    let node;
+    let lastNode;
+    while ((node = el.firstChild)) {
+      lastNode = frag.appendChild(node);
+    }
+    range.insertNode(frag);
+    if (lastNode) {
+      range.setStartAfter(lastNode);
+      range.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+  } else {
+    editor.insertAdjacentHTML('beforeend', html);
+  }
+}
+
+function insertCuteSticker(index) {
+  const s = CUTE_STICKERS[index];
+  if (!s) return;
+  const chipHtml = `&nbsp;<span contenteditable="false" class="notepad-sticker-chip"><span>${s.emoji}</span><span>${s.label}</span></span>&nbsp;`;
+  insertHtmlIntoNotepad(chipHtml);
+  showToast(`已插入「${s.emoji} ${s.label}」貼圖！`);
+}
+
+function insertEmojiAtCursor(emoji) {
+  insertHtmlIntoNotepad(emoji);
+}
+
+function insertNoteChecklist() {
+  insertHtmlIntoNotepad(`<div>☑️ <strong>待確認事項：</strong>請在此輸入內容...</div>`);
+}
+
+function insertNoteDivider() {
+  insertHtmlIntoNotepad(`<hr class="my-2 border-dashed border-amber-400" /><div></div>`);
+}
+
+function applyGatheringTemplate() {
+  const editor = document.getElementById('gathering-notepad-editor');
+  const templateHtml = `
+    <div><span contenteditable="false" class="notepad-sticker-chip"><span>🏫</span><span>大林307精神</span></span> <strong>同學會聚餐活動說明</strong></div>
+    <div>🍽️ <strong>餐飲特色：</strong>精緻合菜料理（素食或特殊飲食需求請提前告知班長安排）</div>
+    <div>💰 <strong>餐費分攤：</strong>大人每人 $800 元（國小以下孩童免費，現場統一收齊）</div>
+    <div>🕒 <strong>當日流程：</strong></div>
+    <div>&nbsp;&nbsp;11:30 ～ 12:00 報到相見歡、領取名牌與敘舊</div>
+    <div>&nbsp;&nbsp;12:00 ～ 14:00 舉杯開席、享用美食與近況分享 <span contenteditable="false" class="notepad-sticker-chip"><span>🍻</span><span>舉杯歡慶</span></span></div>
+    <div>&nbsp;&nbsp;14:00 ～ 14:30 全班大合照留念 <span contenteditable="false" class="notepad-sticker-chip"><span>📸</span><span>大合照時間</span></span></div>
+    <div>🚗 <strong>停車資訊：</strong>餐廳旁備有專屬免費停車場，亦可共乘前往！</div>
+  `;
+  if (editor.innerText.trim().length > 0) {
+    openConfirmModal(
+      '套用聚餐範本',
+      '目前記事本已有內容，確定要在後方附加同學會聚餐範本嗎？',
+      () => {
+        editor.insertAdjacentHTML('beforeend', `<hr class="my-2 border-dashed border-amber-400" />` + templateHtml);
+        showToast('已套用聚餐活動範本！');
+      }
+    );
+  } else {
+    editor.innerHTML = templateHtml;
+    showToast('已套用聚餐活動範本！');
+  }
+}
+
+function openGatheringMap() {
+  const addr = document.getElementById('g-address').value.trim() || document.getElementById('g-venue-name').value.trim();
+  if (!addr) {
+    showToast('請先輸入餐廳名稱或詳細地址！', 'error');
+    return;
+  }
+  const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`;
+  window.open(url, '_blank', 'noopener');
+}
+
+function copyGatheringSummary() {
+  const venue = document.getElementById('g-venue-name').value.trim() || '（尚未填寫餐廳）';
+  const dt = document.getElementById('g-datetime').value.trim() || '（尚未填寫時間）';
+  const addr = document.getElementById('g-address').value.trim() || '（尚未填寫地址）';
+  const contact = document.getElementById('g-contact').value.trim() || '（尚未填寫訂位資訊）';
+  const noteText = document.getElementById('gathering-notepad-editor').innerText.trim();
+
+  const text = [
+    '🎓【大林國中三年七班 (85年畢) 同學會聚餐邀約】',
+    `🏪 聚餐地點：${venue}`,
+    `🗓️ 聚餐時間：${dt}`,
+    `📍 詳細地址：${addr}`,
+    `☎️ 訂位資訊：${contact}`,
+    noteText ? `\n📝 活動與注意事項：\n${noteText}` : ''
+  ].filter(Boolean).join('\n');
+
+  copyText(text, '聚餐邀約資訊');
+}
+
+// 圖片壓縮處理（確保 Firestore 文件大小安全）
+function compressImageFile(file, maxWidth = 960, quality = 0.72) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+        resolve(compressedDataUrl);
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function handleGatheringPhotoUpload(event) {
+  const files = Array.from(event.target.files || []);
+  if (files.length === 0) return;
+
+  if (!Array.isArray(gatheringData.photos)) {
+    gatheringData.photos = [];
+  }
+
+  const remainingSlots = 6 - gatheringData.photos.length;
+  if (remainingSlots <= 0) {
+    showToast('最多可上傳 6 張佐證圖片，請先移除舊圖片再上傳！', 'error');
+    event.target.value = '';
+    return;
+  }
+
+  const targetFiles = files.slice(0, remainingSlots);
+  showToast(`正在處理並壓縮 ${targetFiles.length} 張圖片...`);
+
+  for (const file of targetFiles) {
+    try {
+      const dataUrl = await compressImageFile(file);
+      const defaultCaption = file.name.replace(/\.[^/.]+$/, '');
+      gatheringData.photos.push({
+        id: `photo_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+        dataUrl,
+        caption: defaultCaption
+      });
+    } catch (err) {
+      console.error('圖片處理失敗:', err);
+      showToast(`圖片「${file.name}」處理失敗`, 'error');
+    }
+  }
+
+  event.target.value = '';
+  renderGatheringPhotos();
+  showToast('圖片已加入！請記得點擊右下角「儲存並雲端同步」保存變更。');
+}
+
+function updateGatheringPhotoCaption(photoId, newCaption) {
+  const target = (gatheringData.photos || []).find(p => p.id === photoId);
+  if (target) {
+    target.caption = newCaption;
+  }
+}
+
+function removeGatheringPhoto(photoId) {
+  gatheringData.photos = (gatheringData.photos || []).filter(p => p.id !== photoId);
+  renderGatheringPhotos();
+  showToast('已移除該張圖片（點擊儲存後同步至雲端）');
+}
+
+function openPhotoLightbox(photoId) {
+  const target = (gatheringData.photos || []).find(p => p.id === photoId);
+  if (!target) return;
+  document.getElementById('lightbox-img').src = target.dataUrl;
+  document.getElementById('lightbox-caption').textContent = target.caption || '聚餐地點佐證圖片';
+  const modal = document.getElementById('photo-lightbox-modal');
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+}
+
+function closePhotoLightbox() {
+  const modal = document.getElementById('photo-lightbox-modal');
+  modal.classList.add('hidden');
+  modal.classList.remove('flex');
+}
+
+function renderGatheringPhotos() {
+  const grid = document.getElementById('gathering-photos-grid');
+  const countBadge = document.getElementById('gathering-photo-count');
+  const photos = Array.isArray(gatheringData.photos) ? gatheringData.photos : [];
+
+  if (countBadge) {
+    countBadge.textContent = `${photos.length} / 6 張`;
+  }
+  if (!grid) return;
+
+  if (photos.length === 0) {
+    grid.innerHTML = `
+      <div class="col-span-full rounded-xl border-2 border-dashed border-cream-300 bg-cream-50/70 p-6 text-center text-xs text-gray-500">
+        <div class="text-2xl mb-1.5">🖼️</div>
+        <p class="font-medium text-gray-700">尚未上傳任何餐廳或菜單佐證圖片</p>
+        <p class="mt-0.5">點擊右上角「上傳圖片佐證」，可分享餐廳外觀、包廂座位或合菜菜單照片</p>
+      </div>
+    `;
+    return;
+  }
+
+  grid.innerHTML = photos.map((photo, idx) => `
+    <div class="rounded-xl border border-cream-300 bg-cream-50 overflow-hidden shadow-sm flex flex-col group">
+      <div class="relative h-36 bg-gray-100 overflow-hidden cursor-pointer" onclick="openPhotoLightbox('${photo.id}')">
+        <img src="${photo.dataUrl}" alt="${escapeHTML(photo.caption || '佐證圖片')}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
+        <span class="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-black/60 text-white text-[11px] font-medium">
+          圖 ${idx + 1}
+        </span>
+        <button
+          type="button"
+          onclick="event.stopPropagation(); removeGatheringPhoto('${photo.id}')"
+          class="absolute top-2 right-2 w-7 h-7 rounded-lg bg-red-600/90 hover:bg-red-700 text-white flex items-center justify-center text-xs shadow transition"
+          title="刪除此張圖片"
+        >
+          ✕
+        </button>
+      </div>
+      <div class="p-2.5 bg-white border-t border-cream-200">
+        <input
+          type="text"
+          value="${escapeHTML(photo.caption || '')}"
+          oninput="updateGatheringPhotoCaption('${photo.id}', this.value)"
+          placeholder="輸入圖片說明（如：一樓停車場入口）"
+          class="w-full px-2.5 py-1.5 rounded-lg bg-cream-50 border border-cream-300 focus:border-forest-700 outline-none text-xs text-gray-800"
+        />
+      </div>
+    </div>
+  `).join('');
+}
+
+async function saveGatheringInfo() {
+  const venueName = document.getElementById('g-venue-name').value.trim();
+  const datetime = document.getElementById('g-datetime').value.trim();
+  const address = document.getElementById('g-address').value.trim();
+  const contact = document.getElementById('g-contact').value.trim();
+  const noteHtml = document.getElementById('gathering-notepad-editor').innerHTML.trim();
+  const now = Date.now();
+
+  const payload = {
+    venueName,
+    datetime,
+    address,
+    contact,
+    noteHtml,
+    photos: gatheringData.photos || [],
+    updatedAt: now
+  };
+
+  gatheringData = { ...payload };
+  saveGatheringToLocalCache();
+  updateGatheringIndicator();
+  populateGatheringModalFields();
+
+  if (db) {
+    setSyncStatus('syncing', '🟡 正在同步聚餐地點資訊...');
+    try {
+      const docRef = doc(db, SETTINGS_COLLECTION_NAME, GATHERING_DOC_ID);
+      await setDoc(docRef, payload, { merge: true });
+
+      const logDetails = [];
+      if (venueName) logDetails.push(`場地：${venueName}`);
+      if (datetime) logDetails.push(`時間：${datetime}`);
+      if (address) logDetails.push(`地址：${address}`);
+      if (payload.photos.length > 0) logDetails.push(`佐證圖片：共 ${payload.photos.length} 張`);
+
+      await recordActivityLog(
+        'GATHERING',
+        0,
+        venueName || '聚餐地點資訊',
+        '更新了同學會聚餐地點資訊記事本內容',
+        logDetails
+      );
+
+      setSyncStatus('connected');
+      showToast('🍽️ 聚餐地點資訊與貼圖圖片已成功儲存並雲端同步！');
+    } catch (err) {
+      console.error('Firestore 儲存聚餐地點資訊失敗:', err);
+      lastSyncErrorMessage = err.message || '寫入權限異常或圖片檔案過大';
+      setSyncStatus('error');
+      showToast(`雲端同步失敗：${lastSyncErrorMessage}`, 'error');
+    }
+  } else {
+    showToast('已儲存於本機快取（目前未連線至雲端）');
+  }
+}
+
+// ==========================================
+// 5. 統計數據更新與渲染
 // ==========================================
 function updateStatistics() {
   const total = members.length;
@@ -476,7 +955,7 @@ function updateStatistics() {
 }
 
 // ==========================================
-// 5. 篩選、排序與檢視切換
+// 6. 篩選、排序與檢視切換
 // ==========================================
 function getFilteredAndSortedMembers() {
   const keyword = document.getElementById('search-input').value.trim().toLowerCase();
@@ -615,7 +1094,7 @@ function setViewMode(mode) {
 }
 
 // ==========================================
-// 6. 畫面渲染 (卡片 & 表格)
+// 7. 畫面渲染 (卡片 & 表格)
 // ==========================================
 function escapeHTML(str) {
   if (!str) return '';
@@ -867,7 +1346,7 @@ function renderTable(list) {
 }
 
 // ==========================================
-// 7. 編輯、新增、快速狀態變更與刪除 (同步寫入 Firestore 並記錄 Log)
+// 8. 編輯、新增、快速狀態變更與刪除 (同步寫入 Firestore 並記錄 Log)
 // ==========================================
 async function quickChangeStatus(id, newStatus) {
   const idx = members.findIndex(m => m.id === id);
@@ -1108,7 +1587,7 @@ function requestDeleteMember() {
 }
 
 // ==========================================
-// 8. 匯出 Excel / CSV 試算表
+// 9. 匯出 Excel / CSV 試算表
 // ==========================================
 function openDataToolsModal() {
   const modal = document.getElementById('datatools-modal');
@@ -1173,7 +1652,7 @@ function copyText(text, label = '內容') {
 }
 
 // ==========================================
-// 9. 自訂確認框與 Toast 提示元件
+// 10. 自訂確認框與 Toast 提示元件
 // ==========================================
 function openConfirmModal(title, desc, onConfirm) {
   document.getElementById('confirm-title').textContent = title;
@@ -1225,7 +1704,7 @@ function showToast(message, type = 'success') {
 }
 
 // 點擊 Modal 背景關閉
-['edit-modal', 'datatools-modal', 'log-modal', 'confirm-modal'].forEach(modalId => {
+['edit-modal', 'datatools-modal', 'log-modal', 'gathering-modal', 'confirm-modal'].forEach(modalId => {
   document.getElementById(modalId).addEventListener('click', (e) => {
     if (e.target.id === modalId) {
       document.getElementById(modalId).classList.add('hidden');
@@ -1259,6 +1738,25 @@ window.openLogModal = openLogModal;
 window.closeLogModal = closeLogModal;
 window.setLogFilter = setLogFilter;
 window.exportLogTxt = exportLogTxt;
+
+// 聚餐地點資訊全域函式
+window.openGatheringModal = openGatheringModal;
+window.closeGatheringModal = closeGatheringModal;
+window.toggleStickerDrawer = toggleStickerDrawer;
+window.execNoteCmd = execNoteCmd;
+window.insertCuteSticker = insertCuteSticker;
+window.insertEmojiAtCursor = insertEmojiAtCursor;
+window.insertNoteChecklist = insertNoteChecklist;
+window.insertNoteDivider = insertNoteDivider;
+window.applyGatheringTemplate = applyGatheringTemplate;
+window.openGatheringMap = openGatheringMap;
+window.copyGatheringSummary = copyGatheringSummary;
+window.handleGatheringPhotoUpload = handleGatheringPhotoUpload;
+window.updateGatheringPhotoCaption = updateGatheringPhotoCaption;
+window.removeGatheringPhoto = removeGatheringPhoto;
+window.openPhotoLightbox = openPhotoLightbox;
+window.closePhotoLightbox = closePhotoLightbox;
+window.saveGatheringInfo = saveGatheringInfo;
 
 // 啟動 Firestore 雲端即時同步
 window.addEventListener('DOMContentLoaded', () => {
